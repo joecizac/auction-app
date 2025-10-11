@@ -15,8 +15,9 @@
 
         <div class="card form-container">
             <form id="team-form">
-                <!-- Login credentials display, hidden by default -->
-                <div id="login-credentials-container" style="display: none; margin-bottom: 2rem; background-color: #e7f3ff; padding: 16px; border-radius: var(--border-radius); border: 1px solid #b3d7ff;">
+                <!-- Login credentials display, with new "Copy" button -->
+                <div id="login-credentials-container" style="display: none; margin-bottom: 2rem; background-color: #e7f3ff; padding: 16px; border-radius: var(--border-radius); border: 1px solid #b3d7ff; position: relative;">
+                     <button type="button" id="copy-credentials-btn" class="btn btn-secondary" style="position: absolute; top: 16px; right: 16px; padding: 6px 12px; font-size: 14px;">Copy Details</button>
                      <h3 style="margin-bottom: 1rem;">Team Login Credentials</h3>
                      <p><strong>Username:</strong> <span id="team-username"></span></p>
                      <p><strong>Password:</strong> <span id="team-password"></span></p>
@@ -65,4 +66,5 @@
     <script src="/team-form.js"></script>
 </body>
 </html>
+
 

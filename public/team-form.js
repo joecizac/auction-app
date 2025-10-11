@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submitBtn = document.getElementById('submit-btn');
     const deleteBtn = document.getElementById('delete-team-btn');
     const loginCredentialsContainer = document.getElementById('login-credentials-container');
+    const copyCredentialsBtn = document.getElementById('copy-credentials-btn');
 
     if (!auctionId) {
         console.error('Invalid auction ID');
@@ -107,6 +108,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Failed to delete team.');
             }
         }
+    });
+
+    // --- Handle Copy Credentials button click ---
+    copyCredentialsBtn.addEventListener('click', () => {
+        const username = document.getElementById('team-username').textContent;
+        const password = document.getElementById('team-password').textContent;
+        const textToCopy = `Username: ${username}\nPassword: ${password}`;
+
+        // Create a temporary textarea to robustly copy text to the clipboard
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalText = copyCredentialsBtn.textContent;
+            copyCredentialsBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyCredentialsBtn.textContent = originalText;
+            }, 2000); // Revert back to original text after 2 seconds
+        } catch (err) {
+            console.error('Failed to copy credentials: ', err);
+            alert('Failed to copy credentials. Please copy them manually.');
+        }
+        document.body.removeChild(textArea);
     });
 });
 
