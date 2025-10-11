@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Panel - Sports Auction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="panel-header">
+            <div class="header-left">
+                <a href="/admin" class="back-link">&larr;</a>
+                <h1 id="auction-title-heading">Auction Name Loading...</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary">Manage Players</button>
+                <button class="btn btn-secondary">Manage Teams</button>
+                <button class="btn btn-secondary">Edit Auction</button>
+                <button class="btn btn-danger">Close Auction</button>
+            </div>
+        </header>
+
+        <div class="panel-body">
+            <div class="player-pool-container">
+                <h2>Player Pool</h2>
+                <!-- Player filters will go here -->
+                <div class="player-grid">
+                    <!-- Players will be loaded here dynamically -->
+                    <p>Players will be shown here...</p>
+                </div>
+            </div>
+            <div class="auction-details-container">
+                <div class="player-details-panel">
+                    <!-- Selected player details -->
+                     <p>Select player to auction</p>
+                </div>
+                <div class="teams-panel">
+                     <h2>Teams</h2>
+                     <!-- Team list will go here -->
+                </div>
+            </div>
+        </div>
+
+        <footer class="panel-footer">
+            <button class="btn btn-primary">Open Presentation Mode</button>
+            <label class="filter-checkbox"><input type="checkbox"> Show Team Balance in Presentation Mode</label>
+        </footer>
+    </div>
+</body>
+</html>

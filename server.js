@@ -45,6 +45,13 @@ app.get('/admin/create-auction', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'create-auction.html'));
 });
 
+
+// --- ROUTE for the specific Auction Admin Panel ---
+app.get('/admin/auction/:auctionId', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'auction-panel.html'));
+});
+
+
 // --- UPDATED API ROUTE to SAVE the auction ---
 app.post('/api/auctions', async (req, res) => {
     const auctionData = req.body;
@@ -61,6 +68,7 @@ app.post('/api/auctions', async (req, res) => {
     console.log('Successfully saved new auction:', auctionData.title);
     res.status(201).json({ message: 'Auction created successfully!', auction: auctionData });
 });
+
 
 // --- NEW API ROUTE to GET all auctions ---
 app.get('/api/auctions', async (req, res) => {

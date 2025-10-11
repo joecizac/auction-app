@@ -7,43 +7,39 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="admin-container">
-        <header>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
             <h1>Auctions</h1>
-        </header>
-        <main>
-            <div class="auctions-grid">
-                <!-- Example of an active auction card -->
-                <div class="auction-card">
-                    <img src="https://placehold.co/600x337/004488/FFFFFF?text=STPL" alt="Auction Banner" class="auction-card-banner">
-                    <div class="auction-card-info">
-                        <h2>STPL - 2025</h2>
-                        <p>Football • Created: 25/08/25</p>
-                    </div>
-                </div>
-
-                <!-- Example of a closed auction card -->
-                <div class="auction-card">
-                    <img src="https://placehold.co/600x337/f5a623/FFFFFF?text=STCL" alt="Auction Banner" class="auction-card-banner">
-                     <div class="closed-overlay">Closed</div>
-                    <div class="auction-card-info">
-                        <h2>STCL - 2025</h2>
-                        <p>Football • Created: 15/07/25</p>
-                    </div>
-                </div>
-
-                <!-- Create New Auction Card -->
-                <a href="/admin/create-auction" class="create-card-link">
-                    <div class="auction-card create-card">
-                        <div class="create-content">
-                            <span>+</span>
-                            <p>Create Auction</p>
-                        </div>
-                    </div>
-                </a>
+            <div class="header-actions">
+                <label class="filter-checkbox"><input type="checkbox"> Hide Closed</label>
             </div>
-        </main>
+        </header>
+
+        <!-- NEW: A wrapper to contain both the grid and the create button -->
+        <div class="auctions-content-wrapper">
+            <!-- The auctions will be dynamically inserted here -->
+            <div id="auctions-grid" class="auctions-grid">
+                <!-- Hardcoded examples removed -->
+            </div>
+            <!-- The "Create Auction" button is now inside the wrapper -->
+            <a href="/admin/create-auction" class="create-auction-card">
+                <div class="create-content">
+                    <span>+</span>
+                    <p>Create New Auction</p>
+                </div>
+            </a>
+        </div>
+
+
+        <!-- This message will show if there are no auctions -->
+        <div id="no-auctions-message" class="empty-state" style="display: none;">
+            <p>No auctions found. Get started by creating one!</p>
+        </div>
+
     </div>
+
+    <!-- Link to our new JavaScript file -->
+    <script src="/admin.js"></script>
 </body>
 </html>
 
