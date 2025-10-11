@@ -1,8 +1,10 @@
 const express = require('express');
 const path = require('path');
-// --- NEW: Import lowdb ---
 const { Low, JSONFile } = require('lowdb');
-// --- FIX: Steno is no longer imported directly ---
+const multer = require('multer');
+const csv = require('csv-parser');
+const streamifier = require('streamifier'); 
+
 
 const app = express();
 const PORT = 3000;
@@ -10,9 +12,9 @@ const PORT = 3000;
 // --- NEW: Database Setup ---
 // Use a JSON file for our database
 const file = path.join(__dirname, 'db.json');
-// --- FIX: Simplified the adapter. Steno is used automatically by JSONFile. ---
 const adapter = new JSONFile(file);
 const db = new Low(adapter);
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Function to initialize database with default structure if it's empty
 const initializeDatabase = async () => {
@@ -307,6 +309,59 @@ app.delete('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
         res.status(404).json({ message: 'Auction or players not found' });
     }
 });
+
+// --- POST route for bulk player upload via CSV ---
+app.post('/api/auctions/:auctionId/players/upload', upload.single('playerCsv'), async (req, res) => {
+    const { auctionId } = req.params;
+    
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === auctionId);
+    if (!auction) {
+        return res.status(404).json({ message: 'Auction not found' });
+    }
+    if (!auction.players) {
+        auction.players = [];
+    }
+
+    const players = [];
+    // Create a readable stream from the uploaded file's buffer
+    const stream = streamifier.createReadStream(req.file.buffer);
+    stream.pipe(csv())
+        .on('data', (row) => {
+            // Assumes CSV headers match these keys: name, position, division, experience, basePrice, merits
+            const newPlayer = {
+                ...row,
+                dbId: `player_${Date.now()}_${players.length}`,
+            };
+
+            // Generate display ID
+            const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
+            const playersInDivision = auction.players.filter(p => p.division === newPlayer.division).length + players.filter(p => p.division === newPlayer.division).length;
+            newPlayer.id = `${divisionInitial}${playersInDivision + 1}`;
+
+            players.push(newPlayer);
+        })
+        .on('end', async () => {
+            try {
+                auction.players.push(...players);
+                await db.write();
+                console.log(`Successfully imported ${players.length} players to auction "${auction.title}"`);
+                res.status(201).json({ message: `Successfully imported ${players.length} players.` });
+            } catch (err) {
+                console.error("Error writing to database:", err);
+                res.status(500).json({ message: 'Error saving players to database.' });
+            }
+        })
+        .on('error', (error) => {
+            console.error("Error parsing CSV:", error);
+            res.status(500).json({ message: 'Error parsing CSV file.' });
+        });
+});
+
 
 // Start the server
 const startServer = async () => {

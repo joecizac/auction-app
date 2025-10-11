@@ -15,9 +15,13 @@
             </div>
             <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
                 <a href="#" id="add-player-link" class="btn btn-primary">Add Player</a>
-                <button class="btn btn-secondary">Upload CSV</button>
+                <!-- Add id to button -->
+                <button id="upload-csv-btn" class="btn btn-secondary">Upload CSV</button>
             </div>
         </header>
+
+        <!-- NEW: Hidden file input for the CSV upload -->
+        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
 
         <div class="card">
             <!-- Player Filters -->
@@ -39,7 +43,6 @@
             <!-- Player List -->
             <div id="player-list-container">
                 <p>No players added to this auction yet.</p>
-                <!-- Player list will be loaded here dynamically -->
             </div>
         </div>
     </div>
@@ -47,3 +50,5 @@
     <script src="/manage-players.js"></script>
 </body>
 </html>
+
+
