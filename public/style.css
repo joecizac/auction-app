@@ -228,3 +228,75 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .panel-body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 24px; }
 .panel-body .card { padding: 24px; }
 .panel-footer { margin-top: 24px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+/* --- STYLES for Live Auction Panel --- */
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.player-card {
+    background-color: var(--light-gray);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.player-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow);
+    border-color: var(--primary-color);
+}
+
+.player-card-id {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 4px;
+}
+.player-card-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.player-card-position {
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+.team-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--medium-gray);
+}
+.team-list-item:last-child {
+    border-bottom: none;
+}
+.team-info {
+    display: flex;
+    flex-direction: column;
+}
+.team-name {
+    font-weight: 600;
+}
+.team-budget {
+    font-size: 14px;
+    color: #28a745; /* Green for budget */
+}
+.team-player-count {
+    font-size: 14px;
+    background-color: var(--medium-gray);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.empty-message {
+    color: var(--secondary-color);
+    text-align: center;
+    padding: 24px;
+}
