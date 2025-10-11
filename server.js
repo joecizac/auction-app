@@ -99,6 +99,11 @@ app.get('/admin/auction/:auctionId/teams/new', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'team-form.html'));
 });
 
+// --- Serves the form to edit a team ---
+app.get('/admin/auction/:auctionId/teams/:teamId/edit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'team-form.html'));
+});
+
 
 // --- API ROUTES for Team Management ---
 
@@ -110,6 +115,22 @@ app.get('/api/auctions/:auctionId/teams', async (req, res) => {
         res.json(auction.teams || []); // Return teams array or empty array if it doesn't exist
     } else {
         res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// --- GET a single team by ID ---
+app.get('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.teams) {
+        const team = auction.teams.find(t => t.id === req.params.teamId);
+        if (team) {
+            res.json(team);
+        } else {
+            res.status(404).json({ message: 'Team not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or teams not found' });
     }
 });
 
@@ -137,6 +158,44 @@ app.post('/api/auctions/:auctionId/teams', async (req, res) => {
 
     console.log(`Team "${newTeam.name}" added to auction "${auction.title}"`);
     res.status(201).json(newTeam);
+});
+
+// --- PUT (update) an existing team ---
+app.put('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.teams) {
+        const teamIndex = auction.teams.findIndex(t => t.id === req.params.teamId);
+        if (teamIndex !== -1) {
+            // Update team data but keep original ID and credentials
+            const originalTeam = auction.teams[teamIndex];
+            auction.teams[teamIndex] = { ...originalTeam, ...req.body };
+            await db.write();
+            res.json(auction.teams[teamIndex]);
+        } else {
+            res.status(404).json({ message: 'Team not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or teams not found' });
+    }
+});
+
+// --- DELETE a team ---
+app.delete('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.teams) {
+        const teamIndex = auction.teams.findIndex(t => t.id === req.params.teamId);
+        if (teamIndex !== -1) {
+            auction.teams.splice(teamIndex, 1);
+            await db.write();
+            res.status(204).send(); // 204 No Content success status
+        } else {
+            res.status(404).json({ message: 'Team not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or teams not found' });
+    }
 });
 
 

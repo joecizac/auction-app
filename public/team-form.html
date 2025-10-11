@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Team - Sports Auction</title>
+    <title>Manage Team - Sports Auction</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
         <header class="form-header">
              <a href="#" id="back-to-teams-link" class="back-link">&larr;</a>
-             <h1>Create Team</h1>
+             <h1 id="form-title">Create Team</h1>
         </header>
 
         <div class="card form-container">
             <form id="team-form">
+                <!-- Login credentials display, hidden by default -->
+                <div id="login-credentials-container" style="display: none; margin-bottom: 2rem; background-color: #e7f3ff; padding: 16px; border-radius: var(--border-radius); border: 1px solid #b3d7ff;">
+                     <h3 style="margin-bottom: 1rem;">Team Login Credentials</h3>
+                     <p><strong>Username:</strong> <span id="team-username"></span></p>
+                     <p><strong>Password:</strong> <span id="team-password"></span></p>
+                </div>
+
                 <div class="form-section">
                     <h2>Team Details</h2>
                      <div class="form-group">
@@ -47,13 +54,15 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Team</button>
+                <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center;">
+                    <!-- Delete button, hidden by default -->
+                    <button type="button" id="delete-team-btn" class="btn btn-danger" style="display: none;">Delete Team</button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary">Create Team</button>
                 </div>
             </form>
         </div>
     </div>
-    <!-- Link to the new script -->
     <script src="/team-form.js"></script>
 </body>
 </html>
+

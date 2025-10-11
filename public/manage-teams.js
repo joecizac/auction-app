@@ -31,8 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             teamsGridWrapper.innerHTML = ''; // Clear the message
             teams.forEach(team => {
+                // THE FIX: Wrap the card in a link to the edit page
+                const link = document.createElement('a');
+                link.href = `/admin/auction/${auctionId}/teams/${team.id}/edit`;
+                link.className = 'auction-card-link';
+
                 const teamCard = document.createElement('div');
-                teamCard.className = 'auction-card'; // Reusing our consistent card style
+                teamCard.className = 'auction-card';
                 teamCard.innerHTML = `
                     <div class="card-image-placeholder">
                         <span>${team.name.charAt(0).toUpperCase()}</span>
@@ -43,7 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <p class="date">Players: 0</p>
                     </div>
                 `;
-                teamsGridWrapper.appendChild(teamCard);
+                link.appendChild(teamCard);
+                teamsGridWrapper.appendChild(link);
             });
         }
     } catch (error) {
@@ -51,3 +57,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         teamsGridWrapper.innerHTML = '<p class="error-message">Could not load teams.</p>';
     }
 });
+
