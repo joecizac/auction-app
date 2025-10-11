@@ -1,0 +1,9 @@
+Ignore Node.js dependencies folder
+node_modules/
+
+Ignore database files
+*.db
+*.db-journal
+
+Ignore environment files
+.env
