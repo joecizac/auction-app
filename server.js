@@ -152,6 +152,45 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => {
 });
 
 
+// --- API ROUTES for Player Management ---
+
+// GET all players for a specific auction
+app.get('/api/auctions/:auctionId/players', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction) {
+        res.json(auction.players || []);
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// POST a new player to a specific auction
+app.post('/api/auctions/:auctionId/players', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (!auction) {
+        return res.status(404).json({ message: 'Auction not found' });
+    }
+
+    if (!auction.players) {
+        auction.players = [];
+    }
+
+    const newPlayer = req.body;
+    // Generate a unique ID (e.g., S1, Y2)
+    const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
+    const playersInDivision = auction.players.filter(p => p.division === newPlayer.division).length;
+    newPlayer.id = `${divisionInitial}${playersInDivision + 1}`;
+
+    auction.players.push(newPlayer);
+    await db.write();
+
+    console.log(`Player "${newPlayer.name}" added to auction "${auction.title}"`);
+    res.status(201).json(newPlayer);
+});
+
+
 // Start the server
 const startServer = async () => {
     await initializeDatabase();
