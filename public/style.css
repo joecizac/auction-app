@@ -383,3 +383,41 @@ select:focus {
     margin-top: 32px;
     padding-top: 32px;
 }
+
+/* Styles for Bid Increment Buttons */
+.btn-remove-increment {
+    background-color: #fde8e8;
+    color: #c53030;
+    border: 1px solid #fbcaca;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-remove-increment:hover {
+    background-color: #c53030;
+    color: #fff;
+    border-color: #c53030;
+}
+
+.btn-remove-increment:disabled {
+    background-color: #f0f2f5;
+    color: #ccc;
+    border-color: #ddd;
+    cursor: not-allowed;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 14px;
+}

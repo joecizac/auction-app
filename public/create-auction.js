@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePositionLimits();
 
 
-    
+
     // --- Handle the division checkboxes ---
     const divisionCheckboxes = document.querySelectorAll('input[name="division"]');
     const divisionLimitsContainer = document.getElementById('division-limits-rows-container');
@@ -79,6 +79,38 @@ document.addEventListener('DOMContentLoaded', () => {
     divisionCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateDivisionLimits);
     });
+
+
+
+    // --- Logic for Bid Increments ---
+    const bidIncrementsContainer = document.getElementById('bid-increments-container');
+    const addIncrementBtn = document.getElementById('add-increment-btn');
+
+    const addBidIncrementRow = () => {
+        const newRow = document.createElement('div');
+        newRow.className = 'form-row bid-increment-row';
+        newRow.innerHTML = `
+            <input type="number" placeholder="From">
+            <input type="number" placeholder="To">
+            <input type="number" placeholder="Increment by">
+            <button type="button" class="btn-remove-increment">&times;</button>
+        `;
+        bidIncrementsContainer.appendChild(newRow);
+    };
+
+    addIncrementBtn.addEventListener('click', addBidIncrementRow);
+
+    // Event delegation to handle removing rows
+    bidIncrementsContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('btn-remove-increment')) {
+            // Prevent removing the very first row
+            if (bidIncrementsContainer.children.length > 1) {
+                event.target.closest('.bid-increment-row').remove();
+            }
+        }
+    });
+
+
 
     // Run the function once when the page loads to set the initial state
     updateDivisionLimits();
