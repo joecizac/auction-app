@@ -76,6 +76,17 @@ app.get('/api/auctions', async (req, res) => {
     res.json(db.data.auctions);
 });
 
+// --- API ROUTE to GET a SINGLE auction ---
+app.get('/api/auctions/:auctionId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction) {
+        res.json(auction);
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
 
 // Start the server
 const startServer = async () => {
