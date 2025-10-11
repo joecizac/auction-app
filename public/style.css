@@ -369,3 +369,17 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     gap: 12px;
     margin-top: 24px;
 }
+
+/* --- STYLES for Bidding State --- */
+
+/* Style for the team that is currently the highest bidder */
+.team-list-item.bidding {
+    background-color: #e7f3ff;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 12px;
+}
+
+.bidding-team-name {
+    font-weight: bold;
+    color: var(--primary-color);
+}
