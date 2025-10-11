@@ -1,21 +1,35 @@
 const express = require('express');
 const path = require('path');
+// --- NEW: Import lowdb ---
+const { Low, JSONFile } = require('lowdb');
+// --- FIX: Steno is no longer imported directly ---
 
 const app = express();
 const PORT = 3000;
 
+// --- NEW: Database Setup ---
+// Use a JSON file for our database
+const file = path.join(__dirname, 'db.json');
+// --- FIX: Simplified the adapter. Steno is used automatically by JSONFile. ---
+const adapter = new JSONFile(file);
+const db = new Low(adapter);
+
+// Function to initialize database with default structure if it's empty
+const initializeDatabase = async () => {
+    await db.read();
+    db.data = db.data || { auctions: [], teams: [], players: [] }; // Default structure
+    await db.write();
+};
+
+
 // MIDDLEWARE
-// This line allows the server to understand incoming JSON data
 app.use(express.json());
-// This line serves static files (HTML, CSS, JS) from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 // ROUTES
-// Handles the POST request when a user tries to log in
-app.post('/login', (req, res) => { // This line must have (req, res)
+app.post('/login', (req, res) => {
     const { username, password } = req.body;
-
     if (username === 'admin' && password === 'password123') {
         res.json({ success: true, redirectUrl: '/admin' });
     } else {
@@ -23,29 +37,44 @@ app.post('/login', (req, res) => { // This line must have (req, res)
     }
 });
 
-// Serves the admin dashboard page
-app.get('/admin', (req, res) => { // This line must have (req, res)
+app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Serves the "Create Auction" form page
-app.get('/admin/create-auction', (req, res) => { // This line must have (req, res)
+app.get('/admin/create-auction', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'create-auction.html'));
 });
 
-// API ROUTE: Handles saving the new auction data
-app.post('/api/auctions', (req, res) => { // This line must have (req, res)
+// --- UPDATED API ROUTE to SAVE the auction ---
+app.post('/api/auctions', async (req, res) => {
     const auctionData = req.body;
-    console.log('Received new auction data:');
-    console.log(JSON.stringify(auctionData, null, 2)); // Pretty-prints the JSON data
 
-    // Later, we'll save this to a database.
+    // Add a unique ID and creation date
+    auctionData.id = `auc_${Date.now()}`;
+    auctionData.createdAt = new Date().toISOString();
+    auctionData.status = 'upcoming'; // 'upcoming', 'live', 'closed'
+
+    await db.read();
+    db.data.auctions.push(auctionData);
+    await db.write();
+
+    console.log('Successfully saved new auction:', auctionData.title);
     res.status(201).json({ message: 'Auction created successfully!', auction: auctionData });
+});
+
+// --- NEW API ROUTE to GET all auctions ---
+app.get('/api/auctions', async (req, res) => {
+    await db.read();
+    res.json(db.data.auctions);
 });
 
 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+const startServer = async () => {
+    await initializeDatabase();
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+};
 
+startServer();

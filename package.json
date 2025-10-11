@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "lowdb": "^2.1.0",
     "socket.io": "^4.7.5",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "steno": "^1.0.0"
   }
 }
