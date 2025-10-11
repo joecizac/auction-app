@@ -140,6 +140,18 @@ app.post('/api/auctions/:auctionId/teams', async (req, res) => {
 });
 
 
+// --- ROUTES for Player Management ---
+// Serves the page to manage players for a specific auction
+app.get('/admin/auction/:auctionId/players', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'manage-players.html'));
+});
+
+// Serves the form to add a new player to a specific auction
+app.get('/admin/auction/:auctionId/players/new', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'player-form.html'));
+});
+
+
 // Start the server
 const startServer = async () => {
     await initializeDatabase();

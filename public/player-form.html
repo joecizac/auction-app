@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Player - Sports Auction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="form-header">
+             <a href="#" id="back-to-players-link" class="back-link">&larr;</a>
+             <h1>Add Player</h1>
+        </header>
+
+        <div class="card form-container">
+            <form id="player-form">
+                 <div class="form-section">
+                    <h2>Player Details</h2>
+                    <div class="form-group">
+                        <label for="player-name">Player Name*</label>
+                        <input type="text" id="player-name" name="player-name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label for="player-position">Position*</label>
+                            <select id="player-position" name="player-position" required>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label for="player-division">Division*</label>
+                            <select id="player-division" name="player-division" required>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                     <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label for="player-experience">Experience*</label>
+                            <select id="player-experience" name="player-experience" required>
+                                <option value="novice">Novice</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="professional">Professional</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label for="base-price">Base Price*</label>
+                            <input type="number" id="base-price" name="base-price" required>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label for="player-merits">Merits / Achievements</label>
+                        <textarea id="player-merits" name="player-merits" rows="3" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: var(--border-radius); font-size: 16px; font-family: inherit;"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Player</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- We will create and link player-form.js in a future step -->
+</body>
+</html>

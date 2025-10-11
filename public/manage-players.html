@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Players - Sports Auction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-left" style="display: flex; align-items: center; gap: 16px;">
+                 <a href="#" id="back-to-auction-link" class="back-link">&larr;</a>
+                 <h1 id="auction-title-heading">Manage Players</h1>
+            </div>
+            <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                <a href="#" id="add-player-link" class="btn btn-primary">Add Player</a>
+                <button class="btn btn-secondary">Upload CSV</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <!-- Player Filters -->
+            <div class="form-row" style="padding-bottom: 24px; border-bottom: 1px solid var(--medium-gray); margin-bottom: 24px;">
+                <div class="form-group" style="flex:1;">
+                    <select id="filter-division"><option>All Divisions</option></select>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <select id="filter-position"><option>All Positions</option></select>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <select id="filter-experience"><option>All Experience</option></select>
+                </div>
+                 <div class="form-group" style="flex:2;">
+                    <input type="text" id="search-player" placeholder="Search by name or ID...">
+                </div>
+            </div>
+
+            <!-- Player List -->
+            <div id="player-list-container">
+                <p>No players added to this auction yet.</p>
+                <!-- Player list will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+    <!-- We will create and link manage-players.js in a future step -->
+</body>
+</html>
