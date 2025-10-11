@@ -10,7 +10,8 @@
     <div class="container">
         <header class="form-header">
              <a href="#" id="back-to-players-link" class="back-link">&larr;</a>
-             <h1>Add Player</h1>
+             <!-- FIX: Added id="form-title" -->
+             <h1 id="form-title">Add Player</h1>
         </header>
 
         <div class="card form-container">
@@ -55,13 +56,15 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Player</button>
+                <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="delete-player-btn" class="btn btn-danger" style="display: none;">Delete Player</button>
+                    <!-- FIX: Added id="submit-btn" -->
+                    <button type="submit" id="submit-btn" class="btn btn-primary">Save Player</button>
                 </div>
             </form>
         </div>
     </div>
-    <!-- Link to the new script -->
     <script src="/player-form.js"></script>
 </body>
 </html>
+

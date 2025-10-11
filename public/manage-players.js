@@ -44,7 +44,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (players.length === 0) {
             playerListContainer.innerHTML = '<p>No players added to this auction yet.</p>';
         } else {
-            // Display players in a table for better organization
+            const tableBody = players.map(player => `
+                <tr onclick="window.location.href='/admin/auction/${auctionId}/players/${player.dbId}/edit'">
+                    <td><span class="player-id-badge">${player.id}</span></td>
+                    <td>${player.name}</td>
+                    <td>${player.position}</td>
+                    <td>${player.division}</td>
+                    <td>${player.experience}</td>
+                    <td>${new Intl.NumberFormat().format(player.basePrice)}</td>
+                </tr>
+            `).join('');
+
             playerListContainer.innerHTML = `
                 <table class="player-table">
                     <thead>
@@ -55,21 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <th>Division</th>
                             <th>Experience</th>
                             <th>Base Price</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${players.map(player => `
-                            <tr>
-                                <td><span class="player-id-badge">${player.id}</span></td>
-                                <td>${player.name}</td>
-                                <td>${player.position}</td>
-                                <td>${player.division}</td>
-                                <td>${player.experience}</td>
-                                <td>${new Intl.NumberFormat().format(player.basePrice)}</td>
-                                <td><button class="btn-icon">&hellip;</button></td>
-                            </tr>
-                        `).join('')}
+                        ${tableBody}
                     </tbody>
                 </table>
             `;

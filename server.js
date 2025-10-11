@@ -210,6 +210,11 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'player-form.html'));
 });
 
+// Serves the form to edit a player
+app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'player-form.html'));
+});
+
 
 // --- API ROUTES for Player Management ---
 
@@ -221,6 +226,22 @@ app.get('/api/auctions/:auctionId/players', async (req, res) => {
         res.json(auction.players || []);
     } else {
         res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// --- GET a single player by ID ---
+app.get('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        const player = auction.players.find(p => p.dbId === req.params.playerId);
+        if (player) {
+            res.json(player);
+        } else {
+            res.status(404).json({ message: 'Player not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
     }
 });
 
@@ -241,6 +262,7 @@ app.post('/api/auctions/:auctionId/players', async (req, res) => {
     const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
     const playersInDivision = auction.players.filter(p => p.division === newPlayer.division).length;
     newPlayer.id = `${divisionInitial}${playersInDivision + 1}`;
+    newPlayer.dbId = `player_${Date.now()}`;
 
     auction.players.push(newPlayer);
     await db.write();
@@ -249,6 +271,42 @@ app.post('/api/auctions/:auctionId/players', async (req, res) => {
     res.status(201).json(newPlayer);
 });
 
+// --- PUT (update) an existing player ---
+app.put('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
+        if (playerIndex !== -1) {
+            const originalPlayer = auction.players[playerIndex];
+            auction.players[playerIndex] = { ...originalPlayer, ...req.body };
+            await db.write();
+            res.json(auction.players[playerIndex]);
+        } else {
+            res.status(404).json({ message: 'Player not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
+    }
+});
+
+// --- DELETE a player ---
+app.delete('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
+        if (playerIndex !== -1) {
+            auction.players.splice(playerIndex, 1);
+            await db.write();
+            res.status(204).send();
+        } else {
+            res.status(404).json({ message: 'Player not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
+    }
+});
 
 // Start the server
 const startServer = async () => {
