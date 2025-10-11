@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sports Auction</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">Auctions</h1>
+            <div class="filter-group">
+                <input type="checkbox" id="hide-closed">
+                <label for="hide-closed">Hide Closed</label>
+            </div>
+        </header>
+
+        <main class="auctions-grid">
+            <!-- Example of an active auction card -->
+            <div class="auction-card">
+                <img src="https://placehold.co/400x225/004488/FFFFFF?text=League+Logo" alt="Auction Banner" class="auction-image">
+                <div class="card-content">
+                    <h3 class="card-title">STPL - 2025</h3>
+                    <p class="card-subtitle">Football</p>
+                    <p class="card-date">25/08/25</p>
+                </div>
+            </div>
+
+            <!-- Example of a closed auction card -->
+            <div class="auction-card is-closed">
+                 <div class="closed-overlay">
+                    <span>CLOSED</span>
+                </div>
+                <img src="https://placehold.co/400x225/E0A000/000000?text=League+Logo" alt="Auction Banner" class="auction-image">
+                <div class="card-content">
+                    <h3 class="card-title">STFL - 2025</h3>
+                    <p class="card-subtitle">Football</p>
+                    <p class="card-date">24/07/25</p>
+                </div>
+            </div>
+             <!-- This card is for adding new auctions -->
+            <div class="auction-card create-card">
+                <div class="create-content">
+                    <span>+</span>
+                    <p>Create Auction</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

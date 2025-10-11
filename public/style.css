@@ -1,98 +1,169 @@
+/* ... existing login page styles ... */
+
+/* =================== ADMIN DASHBOARD STYLES =================== */
+
 body {
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    /* OLD: font-family: 'Inter', sans-serif; */
+    /* NEW: A modern, system-native font stack */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #f0f2f5;
+}
+
+.page-center-vertical {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
-.main-container {
+.login-container {
     display: flex;
-    width: 900px;
+    justify-content: center;
     align-items: center;
-    justify-content: space-around;
+    height: 100vh;
+}
+
+.dashboard-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px auto;
     padding: 20px;
+    box-sizing: border-box;
 }
 
-/* Left side of the screen */
-.info-section {
-    flex-basis: 50%;
-    padding-right: 50px;
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
 }
 
-.main-title {
-    font-size: 48px;
+.dashboard-title {
+    font-size: 32px;
     font-weight: 700;
     color: #1d2129;
 }
 
-/* Right side of the screen */
-.login-section {
-    flex-basis: 50%;
+.filter-group {
     display: flex;
-    justify-content: center;
+    align-items: center;
 }
 
-.login-box {
-    width: 380px;
-    padding: 24px;
+.filter-group label {
+    font-size: 16px;
+    color: #606770;
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+.auctions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.auction-card {
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 1px solid #dddfe2;
-}
-
-.input-group {
-    margin-bottom: 16px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #606770;
-    margin-bottom: 8px;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #ccd0d5;
-    border-radius: 6px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: #1877f2;
-    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
-}
-
-.login-button {
-    padding: 12px 24px;
-    background-color: #1877f2;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
     cursor: pointer;
-    transition: background-color 0.2s;
-    float: right; /* Aligns button to the right */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    position: relative; /* Needed for the overlay */
 }
 
-.login-button:hover {
-    background-color: #166fe5;
+.auction-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* A small helper to make sure the box contains the floating button */
-#login-form::after {
-    content: "";
-    clear: both;
-    display: table;
+.auction-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.card-content {
+    padding: 16px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: #1d2129;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: #606770;
+    margin: 0 0 12px 0;
+}
+
+.card-date {
+    font-size: 12px;
+    color: #8a8d91;
+    margin: 0;
+}
+
+/* Styles for the "Create Auction" card */
+.create-card {
+    border: 2px dashed #ccd0d5;
+    background-color: #f7f8fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 275px; /* Match height of other cards */
+    box-shadow: none;
+}
+
+.create-card:hover {
+    border-color: #1877f2;
+    background-color: #eff5ff;
+}
+
+.create-content {
+    text-align: center;
+    color: #606770;
+}
+
+.create-content span {
+    font-size: 48px;
+    font-weight: 200;
+    color: #1877f2;
+}
+
+.create-content p {
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+/* Styles for closed auctions */
+.auction-card.is-closed .auction-image {
+    filter: grayscale(100%);
+}
+
+.closed-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 150px; /* Match image height */
+    background-color: rgba(50, 50, 50, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.closed-overlay span {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border: 2px solid white;
+    padding: 8px 16px;
+    border-radius: 4px;
 }
 

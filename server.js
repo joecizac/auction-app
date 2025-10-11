@@ -1,33 +1,58 @@
 // server.js - The heart of our application
 
 // 1. Import necessary tools
-// 'express' is the web framework that makes creating a server easy.
-// 'path' helps us work with file and directory paths.
 const express = require('express');
 const path = require('path');
 
 // 2. Initialize the app
-// We create an instance of an express application.
 const app = express();
-// We define a port for our server to listen on. 3000 is a common choice.
 const PORT = 3000;
 
 // 3. Set up Middleware
-// This line tells Express to serve static files (like HTML, CSS, JS)
-// from the 'public' directory. This is how users will get our login page.
+// This line tells Express that it can understand JSON data sent in requests
+app.use(express.json());
+// This line serves static files from the 'public' directory.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 4. Define Routes
-// This is a basic route. When a user visits our site's root URL (e.g., http://localhost:3000),
-// we send them the index.html file.
+// Route for the main login page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// =================== NEW SECTION START ===================
+
+// Route to handle login attempts
+app.post('/login', (req, res) => {
+    // Get the username and password from the request body sent by the frontend
+    const { username, password } = req.body;
+
+    // For now, we'll hardcode the admin credentials
+    // In the future, we will check these against a database
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = 'password123';
+
+    // Check if the provided credentials match our hardcoded admin
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        // If they match, send a success response
+        res.json({ success: true, message: 'Login successful!' });
+    } else {
+        // If they don't match, send a failure response
+        res.json({ success: false, message: 'Invalid username or password.' });
+    }
+});
+
+// A placeholder route for the admin dashboard
+// We will build this page in the next step
+app.get('/admin', (req, res) => {
+    // res.send('<h1>Welcome, Admin!</h1><p>This is the future admin dashboard.</p>');
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// =================== NEW SECTION END ===================
+
 // 5. Start the Server
-// This tells our server to start listening for connections on the specified port.
-// The message in the console lets us know it's running.
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  console.log('Open your browser and navigate to the link above to see the login page.');
 });
+
