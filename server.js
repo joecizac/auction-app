@@ -90,7 +90,7 @@ app.put('/api/auctions/:auctionId', async (req, res) => {
     }
 });
 
-// --- NEW: PUT route to update only the auction's status (for closing/reopening) ---
+// --- PUT route to update only the auction's status (for closing/reopening) ---
 app.put('/api/auctions/:auctionId/status', async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
@@ -98,6 +98,19 @@ app.put('/api/auctions/:auctionId/status', async (req, res) => {
         auction.status = req.body.status;
         await db.write();
         res.json(auction);
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// --- DELETE route to permanently delete an auction ---
+app.delete('/api/auctions/:auctionId', async (req, res) => {
+    await db.read();
+    const auctionIndex = db.data.auctions.findIndex(a => a.id === req.params.auctionId);
+    if (auctionIndex !== -1) {
+        db.data.auctions.splice(auctionIndex, 1);
+        await db.write();
+        res.status(204).send(); // Success with no content
     } else {
         res.status(404).json({ message: 'Auction not found' });
     }

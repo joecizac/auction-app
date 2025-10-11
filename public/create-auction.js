@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const auctionForm = document.querySelector('.auction-form');
     const submitBtn = auctionForm.querySelector('button[type="submit"]');
     const backLink = document.querySelector('.back-link');
+    const deleteBtn = document.getElementById('delete-auction-btn');
 
     // Set back link dynamically
     backLink.href = isEditing ? `/admin/auction/${auctionId}` : '/admin';
@@ -114,6 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- EDIT MODE ---
         formTitle.textContent = 'Edit Auction';
         submitBtn.textContent = 'Update Auction';
+        deleteBtn.style.display = 'block';
         
         try {
             const response = await fetch(`/api/auctions/${auctionId}`);
@@ -228,6 +230,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error saving auction:', error);
             alert('Failed to save auction.');
+        }
+    });
+
+    // --- Handle Delete Button Click ---
+    deleteBtn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to permanently delete this auction? All associated teams and players will also be lost. This action cannot be undone.')) {
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete auction');
+                }
+                alert('Auction deleted successfully.');
+                window.location.href = '/admin'; // Redirect to the dashboard
+            } catch (error) {
+                console.error('Error deleting auction:', error);
+                alert('Failed to delete auction.');
+            }
         }
     });
 });

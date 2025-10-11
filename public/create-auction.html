@@ -78,7 +78,9 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
+                <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center;">
+                    <!-- NEW: Delete button, hidden by default -->
+                    <button type="button" id="delete-auction-btn" class="btn btn-danger" style="display: none;">Delete Auction</button>
                     <button type="submit" class="btn btn-primary">Create Auction</button>
                 </div>
             </form>
@@ -87,4 +89,3 @@
     <script src="/create-auction.js"></script>
 </body>
 </html>
-
