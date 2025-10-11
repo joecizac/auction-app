@@ -88,6 +88,18 @@ app.get('/api/auctions/:auctionId', async (req, res) => {
 });
 
 
+// --- ROUTES for Team Management ---
+// Serves the page to manage teams for a specific auction
+app.get('/admin/auction/:auctionId/teams', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'manage-teams.html'));
+});
+
+// Serves the form to create a new team for a specific auction
+app.get('/admin/auction/:auctionId/teams/new', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'team-form.html'));
+});
+
+
 // Start the server
 const startServer = async () => {
     await initializeDatabase();

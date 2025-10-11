@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Team - Sports Auction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="form-header">
+             <a href="#" id="back-to-teams-link" class="back-link">&larr;</a>
+             <h1>Create Team</h1>
+        </header>
+
+        <div class="card form-container">
+            <form id="team-form">
+                <div class="form-section">
+                    <h2>Team Details</h2>
+                     <div class="form-group">
+                        <label for="team-name">Team Name*</label>
+                        <input type="text" id="team-name" name="team-name" required>
+                    </div>
+                     <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label for="manager-name">Manager Name</label>
+                            <input type="text" id="manager-name" name="manager-name">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label for="co-manager-name">Co-Manager Name</label>
+                            <input type="text" id="co-manager-name" name="co-manager-name">
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="form-section">
+                    <h2>Captain Details</h2>
+                     <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label for="captain-name">Captain Name*</label>
+                            <input type="text" id="captain-name" name="captain-name" required>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label for="captain-value">Captain Value*</label>
+                            <input type="number" id="captain-value" name="captain-value" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- We will create and link team-form.js in a future step -->
+</body>
+</html>
