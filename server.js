@@ -53,6 +53,11 @@ app.get('/admin/auction/:auctionId', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'auction-panel.html'));
 });
 
+// --- ROUTE for editing an auction ---
+app.get('/admin/auction/:auctionId/edit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'create-auction.html'));
+});
+
 
 // --- UPDATED API ROUTE to SAVE the auction ---
 app.post('/api/auctions', async (req, res) => {
@@ -69,6 +74,33 @@ app.post('/api/auctions', async (req, res) => {
 
     console.log('Successfully saved new auction:', auctionData.title);
     res.status(201).json({ message: 'Auction created successfully!', auction: auctionData });
+});
+
+// --- PUT route to update an auction's main details ---
+app.put('/api/auctions/:auctionId', async (req, res) => {
+    await db.read();
+    const auctionIndex = db.data.auctions.findIndex(a => a.id === req.params.auctionId);
+    if (auctionIndex !== -1) {
+        const originalAuction = db.data.auctions[auctionIndex];
+        db.data.auctions[auctionIndex] = { ...originalAuction, ...req.body };
+        await db.write();
+        res.json(db.data.auctions[auctionIndex]);
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// --- NEW: PUT route to update only the auction's status (for closing/reopening) ---
+app.put('/api/auctions/:auctionId/status', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction) {
+        auction.status = req.body.status;
+        await db.write();
+        res.json(auction);
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
 });
 
 
