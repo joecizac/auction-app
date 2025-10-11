@@ -100,6 +100,46 @@ app.get('/admin/auction/:auctionId/teams/new', (req, res) => {
 });
 
 
+// --- API ROUTES for Team Management ---
+
+// GET all teams for a specific auction
+app.get('/api/auctions/:auctionId/teams', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction) {
+        res.json(auction.teams || []); // Return teams array or empty array if it doesn't exist
+    } else {
+        res.status(404).json({ message: 'Auction not found' });
+    }
+});
+
+// POST a new team to a specific auction
+app.post('/api/auctions/:auctionId/teams', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (!auction) {
+        return res.status(404).json({ message: 'Auction not found' });
+    }
+
+    // Initialize teams array if it doesn't exist
+    if (!auction.teams) {
+        auction.teams = [];
+    }
+
+    const newTeam = req.body;
+    newTeam.id = `team_${Date.now()}`;
+    // In a real app, you would generate a more secure password
+    newTeam.username = newTeam.name.toLowerCase().replace(/\s+/g, '');
+    newTeam.password = Math.random().toString(36).slice(-8);
+
+    auction.teams.push(newTeam);
+    await db.write();
+
+    console.log(`Team "${newTeam.name}" added to auction "${auction.title}"`);
+    res.status(201).json(newTeam);
+});
+
+
 // Start the server
 const startServer = async () => {
     await initializeDatabase();
