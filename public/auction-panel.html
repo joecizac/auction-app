@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="main-container">
-        <header class="panel-header">
+    <div class="container">
+        <header class="card panel-header">
             <div class="header-left">
                 <a href="/admin" class="back-link">&larr;</a>
                 <h1 id="auction-title-heading">Auction Name Loading...</h1>
@@ -23,29 +23,28 @@
 
         <div class="panel-body">
             <div class="player-pool-container">
-                <h2>Player Pool</h2>
-                <!-- Player filters will go here -->
-                <div class="player-grid">
-                    <!-- Players will be loaded here dynamically -->
+                <div class="card">
+                    <h2>Player Pool</h2>
+                </div>
+                <div class="card player-grid" style="flex-grow: 1;">
                     <p>Players will be shown here...</p>
                 </div>
             </div>
             <div class="auction-details-container">
-                <div class="player-details-panel">
-                    <!-- Selected player details -->
+                <div class="card player-details-panel">
                      <p>Select player to auction</p>
                 </div>
-                <div class="teams-panel">
+                <div class="card teams-panel">
                      <h2>Teams</h2>
-                     <!-- Team list will go here -->
                 </div>
             </div>
         </div>
 
-        <footer class="panel-footer">
+        <footer class="card panel-footer">
             <button class="btn btn-primary">Open Presentation Mode</button>
-            <label class="filter-checkbox"><input type="checkbox"> Show Team Balance in Presentation Mode</label>
+            <label class="filter-checkbox"><input type="checkbox"> Show Team Balance</label>
         </footer>
     </div>
 </body>
 </html>
+

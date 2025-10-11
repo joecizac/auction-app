@@ -7,101 +7,83 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="form-container">
-        <header class="form-header">
-            <a href="/admin" class="back-link">&larr; Back to Dashboard</a>
+    <div class="container">
+        <div class="form-header">
+            <a href="/admin" class="back-link">&larr;</a>
             <h1>Create Auction</h1>
-        </header>
+        </div>
 
-        <form class="auction-form">
-            <div class="form-section">
-                <h2>Auction Details</h2>
-                <div class="form-group">
-                    <label for="auction-banner">Auction Banner</label>
-                    <div class="image-upload-wrapper">
-                        <div class="image-preview">
-                            <span class="image-preview-text">Image Preview</span>
+        <div class="card form-container">
+            <form class="auction-form">
+                <div class="form-section">
+                    <h2>Auction Details</h2>
+                    <div class="form-group">
+                        <label for="auction-title">Auction Title*</label>
+                        <input type="text" id="auction-title" name="auction-title" placeholder="e.g., STPL - 2025" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label for="sport-type">Sport*</label>
+                            <select id="sport-type" name="sport-type" required>
+                                <option value="football">Football</option>
+                                <option value="cricket">Cricket</option>
+                            </select>
                         </div>
-                        <input type="file" id="auction-banner" name="auction-banner" hidden>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('auction-banner').click()">Upload</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="auction-title">Auction Title*</label>
-                    <input type="text" id="auction-title" name="auction-title" placeholder="e.g., STPL - 2025" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="sport-type">Sport*</label>
-                        <select id="sport-type" name="sport-type" required>
-                            <option value="football">Football</option>
-                            <option value="cricket">Cricket</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="team-budget">Per Team Budget*</label>
-                        <input type="number" id="team-budget" name="team-budget" placeholder="e.g., 10000000" required>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h2>Bid Increments</h2>
-                <div id="bid-increments-container">
-                    <!-- Initial Bid Increment Row -->
-                    <div class="form-row bid-increment-row">
-                        <input type="number" placeholder="From" value="100000">
-                        <input type="number" placeholder="To" value="2500000">
-                        <input type="number" placeholder="Increment by" value="25000">
-                        <button type="button" class="btn-remove-increment" disabled>&times;</button>
-                    </div>
-                    <div class="form-row bid-increment-row">
-                        <input type="number" placeholder="From" value="2500000">
-                        <input type="number" placeholder="To" value="5000000">
-                        <input type="number" placeholder="Increment by" value="50000">
-                        <button type="button" class="btn-remove-increment">&times;</button>
-                    </div>
-                </div>
-                <button type="button" id="add-increment-btn" class="btn btn-secondary btn-small">Add Tier</button>
-            </div>
-            
-            <div class="form-section">
-                <h2>Rules</h2>
-                 <div class="form-group">
-                    <label>Allowed Divisions*</label>
-                    <div class="checkbox-group">
-                        <label><input type="checkbox" name="division" value="senior_men" checked> Senior(Men)</label>
-                        <label><input type="checkbox" name="division" value="senior_women" checked> Senior(Women)</label>
-                        <label><input type="checkbox" name="division" value="youth_men" checked> Youth(Men)</label>
-                        <label><input type="checkbox" name="division" value="youth_women" checked> Youth(Women)</label>
-                        <label><input type="checkbox" name="division" value="junior_boys"> Junior(Boys)</label>
-                        <label><input type="checkbox" name="division" value="junior_girls"> Junior(Girls)</label>
-                    </div>
-                </div>
-                <div class="limits-container">
-                     <div class="division-limits">
-                        <h3>Division Limits</h3>
-                        <!-- CHANGE 1: The hardcoded division rows have been removed. -->
-                        <!-- CHANGE 2: A new container div with an ID has been added. -->
-                        <div id="division-limits-rows-container">
-                            <!-- JavaScript will now create the rows here -->
+                        <div class="form-group" style="flex:1;">
+                            <label for="team-budget">Per Team Budget*</label>
+                            <input type="number" id="team-budget" name="team-budget" placeholder="e.g., 10000000" required>
                         </div>
                     </div>
-                    <div class="position-limits">
-                        <h3 id="position-limits-heading">Position Limits (Football)</h3>
-                         <div id="position-limits-rows-container">
-                            <!-- JavaScript will now create the rows here -->
-                         </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Bid Increments</h2>
+                    <div id="bid-increments-container">
+                        <!-- THE FIX: Added 'bid-increment-row' class to the default tier -->
+                        <div class="form-row bid-increment-row">
+                            <input type="number" placeholder="From">
+                            <input type="number" placeholder="To">
+                            <input type="number" placeholder="Increment by">
+                            <button type="button" class="btn-remove-increment" disabled>&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-increment-btn" class="btn btn-secondary">Add Tier</button>
+                </div>
+                
+                <div class="form-section">
+                    <h2>Rules</h2>
+                    <div class="rules-layout">
+                        <div class="form-group">
+                           <label>Allowed Divisions*</label>
+                           <div class="checkbox-group">
+                               <label><input type="checkbox" name="division" value="senior_men"> Senior(Men)</label>
+                               <label><input type="checkbox" name="division" value="senior_women"> Senior(Women)</label>
+                               <label><input type="checkbox" name="division" value="youth_men"> Youth(Men)</label>
+                               <label><input type="checkbox" name="division" value="youth_women"> Youth(Women)</label>
+                               <label><input type="checkbox" name="division" value="junior_boys"> Junior(Boys)</label>
+                               <label><input type="checkbox" name="division" value="junior_girls"> Junior(Girls)</label>
+                           </div>
+                       </div>
+                       <div class="limits-container">
+                            <div id="division-limits-container">
+                               <!-- Dynamic division limits -->
+                            </div>
+                           <div id="position-limits-container">
+                               <h3 id="position-limits-heading">Position Limits</h3>
+                                <div id="position-limits-rows-container">
+                                   <!-- Dynamic position limits -->
+                                </div>
+                           </div>
+                       </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Create Auction</button>
-            </div>
-        </form>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Auction</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <!-- THE FIX: Changed src="create-auction.js" to src="/create-auction.js" -->
     <script src="/create-auction.js"></script>
 </body>
 </html>

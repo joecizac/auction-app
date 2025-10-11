@@ -7,21 +7,17 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <header class="dashboard-header">
+    <div class="container">
+        <header class="page-header">
             <h1>Auctions</h1>
-            <div class="header-actions">
-                <label class="filter-checkbox"><input type="checkbox"> Hide Closed</label>
-            </div>
+            <label class="filter-checkbox"><input type="checkbox"> Hide Closed</label>
         </header>
 
-        <!-- NEW: A wrapper to contain both the grid and the create button -->
-        <div class="auctions-content-wrapper">
-            <!-- The auctions will be dynamically inserted here -->
-            <div id="auctions-grid" class="auctions-grid">
-                <!-- Hardcoded examples removed -->
-            </div>
-            <!-- The "Create Auction" button is now inside the wrapper -->
+        <div class="auctions-grid-wrapper">
+            <!-- Auctions will be dynamically inserted here -->
+            <div id="auctions-grid" style="display: contents;"></div>
+
+             <!-- The "Create Auction" button -->
             <a href="/admin/create-auction" class="create-auction-card">
                 <div class="create-content">
                     <span>+</span>
@@ -30,15 +26,12 @@
             </a>
         </div>
 
-
         <!-- This message will show if there are no auctions -->
-        <div id="no-auctions-message" class="empty-state" style="display: none;">
+        <div id="no-auctions-message" style="display: none;">
             <p>No auctions found. Get started by creating one!</p>
         </div>
-
     </div>
 
-    <!-- Link to our new JavaScript file -->
     <script src="/admin.js"></script>
 </body>
 </html>

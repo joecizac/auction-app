@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     auctionForm.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent the default page reload
 
-        // --- Complete Data Collection ---
         const formData = {
             title: document.getElementById('auction-title').value,
             sport: document.getElementById('sport-type').value,
@@ -17,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Collect Bid Increments
-        document.querySelectorAll('.bid-increment-row').forEach(row => {
-            const inputs = row.querySelectorAll('input[type="number"]');
+        document.querySelectorAll('#bid-increments-container .form-row').forEach(row => {
+            const inputs = row.querySelectorAll('input');
             formData.bidIncrements.push({
                 from: inputs[0].value,
                 to: inputs[1].value,
@@ -30,11 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('input[name="division"]:checked').forEach(checkbox => {
             formData.allowedDivisions.push(checkbox.value);
         });
-
+        
         // Collect Division Limits
-        document.querySelectorAll('#division-limits-rows-container .limit-row').forEach(row => {
+        document.querySelectorAll('#division-limits-container .limit-row').forEach(row => {
             const division = row.dataset.division;
-            const inputs = row.querySelectorAll('input[type="number"]');
+            const inputs = row.querySelectorAll('input');
             formData.divisionLimits[division] = {
                 min: inputs[0].value,
                 max: inputs[1].value
@@ -44,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Collect Position Limits
         document.querySelectorAll('#position-limits-rows-container .limit-row').forEach(row => {
             const position = row.dataset.position;
-            const inputs = row.querySelectorAll('input[type="number"]');
+            const inputs = row.querySelectorAll('input');
             formData.positionLimits[position] = {
                 min: inputs[0].value,
                 max: inputs[1].value
@@ -52,23 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
-        console.log("Sending complete data to server:", formData);
+        console.log("Sending data to server:", JSON.stringify(formData, null, 2));
 
         try {
             const response = await fetch('/api/auctions', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log('Server response:', result);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
             alert('Auction created successfully!');
             window.location.href = '/admin'; // Redirect back to the dashboard
 
@@ -80,73 +72,102 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Dynamic UI Logic ---
-    const sportSelect = document.getElementById('sport-type');
-    const positionLimitsHeading = document.getElementById('position-limits-heading');
-    const positionLimitsContainer = document.getElementById('position-limits-rows-container');
-    
+
+    // Sport Position Mapping
     const sportPositions = {
         football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'],
         cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder']
     };
 
+    const sportSelect = document.getElementById('sport-type');
+    const positionLimitsHeading = document.getElementById('position-limits-heading');
+    const positionLimitsContainer = document.getElementById('position-limits-rows-container');
+
     const updatePositionLimits = () => {
         const selectedSport = sportSelect.value;
-        const positions = sportPositions[selectedSport] || [];
-        
-        // Update heading
-        positionLimitsHeading.textContent = `Position Limits (${selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)})`;
-        
-        // Clear current rows
-        positionLimitsContainer.innerHTML = '';
-        
-        // Add new rows
+        const positions = sportPositions[selectedSport];
+        const sportName = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1);
+        positionLimitsHeading.textContent = `Position Limits (${sportName})`;
+        positionLimitsContainer.innerHTML = ''; 
+
         positions.forEach(position => {
             const row = document.createElement('div');
-            row.className = 'form-row limit-row';
-            row.dataset.position = position.toLowerCase(); // for data collection
+            row.className = 'limit-row';
+            row.dataset.position = position.toLowerCase().replace(' ', '_');
             row.innerHTML = `
                 <label>${position}</label>
-                <input type="number" placeholder="Min">
-                <input type="number" placeholder="Max">
+                <div>
+                    <input type="number" placeholder="Min" min="0" max="99">
+                    <input type="number" placeholder="Max" min="0" max="99">
+                </div>
             `;
             positionLimitsContainer.appendChild(row);
         });
     };
 
     sportSelect.addEventListener('change', updatePositionLimits);
-    
+    updatePositionLimits();
 
-    // --- Dynamic Division Limits Logic ---
+
+    // Division Limits Logic
     const divisionCheckboxes = document.querySelectorAll('input[name="division"]');
-    const divisionLimitsContainer = document.getElementById('division-limits-rows-container');
+    const divisionLimitsContainer = document.getElementById('division-limits-container');
 
-    const updateDivisionLimits = () => {
-        divisionLimitsContainer.innerHTML = ''; // Clear existing rows
-        divisionCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const labelText = checkbox.parentElement.textContent.trim();
-                const divisionValue = checkbox.value;
-
-                const row = document.createElement('div');
-                row.className = 'form-row limit-row';
-                row.dataset.division = divisionValue; // for data collection
-                row.innerHTML = `
-                    <label>${labelText}</label>
-                    <input type="number" placeholder="Min">
-                    <input type="number" placeholder="Max">
-                `;
-                divisionLimitsContainer.appendChild(row);
-            }
-        });
+    const divisionLabels = {
+        senior_men: 'Senior(Men)',
+        senior_women: 'Senior(Women)',
+        youth_men: 'Youth(Men)',
+        youth_women: 'Youth(Women)',
+        junior_boys: 'Junior(Boys)',
+        junior_girls: 'Junior(Girls)',
     };
 
-    divisionCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateDivisionLimits);
-    });
+    const updateDivisionLimits = () => {
+        divisionLimitsContainer.innerHTML = ''; 
+        
+        const checkedDivisions = Array.from(divisionCheckboxes).filter(cb => cb.checked);
 
-    // --- Dynamic Bid Increments Logic ---
+        if (checkedDivisions.length > 0) {
+            const heading = document.createElement('h3');
+            heading.textContent = 'Division Limits';
+            divisionLimitsContainer.appendChild(heading);
+
+            checkedDivisions.forEach(checkbox => {
+                const divisionValue = checkbox.value;
+                const divisionLabel = divisionLabels[divisionValue];
+                const row = document.createElement('div');
+                row.className = 'limit-row';
+                row.dataset.division = divisionValue;
+                row.innerHTML = `
+                    <label>${divisionLabel}</label>
+                    <div>
+                        <input type="number" placeholder="Min" min="0" max="99">
+                        <input type="number" placeholder="Max" min="0" max="99">
+                    </div>
+                `;
+                divisionLimitsContainer.appendChild(row);
+            });
+        }
+    };
+    
+    divisionCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateDivisionLimits));
+    updateDivisionLimits();
+
+
+    // Bid Increments Logic
     const bidIncrementsContainer = document.getElementById('bid-increments-container');
     const addIncrementBtn = document.getElementById('add-increment-btn');
+
+    const updateRemoveButtonsState = () => {
+        const allRows = bidIncrementsContainer.querySelectorAll('.form-row.bid-increment-row');
+        const allRemoveButtons = bidIncrementsContainer.querySelectorAll('.btn-remove-increment');
+
+        if (allRows.length <= 1) {
+            allRemoveButtons.forEach(button => button.disabled = true);
+        } else {
+            allRemoveButtons.forEach(button => button.disabled = false);
+        }
+    };
 
     const addBidIncrementRow = () => {
         const newRow = document.createElement('div');
@@ -158,19 +179,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="btn-remove-increment">&times;</button>
         `;
         bidIncrementsContainer.appendChild(newRow);
+        updateRemoveButtonsState();
     };
 
     addIncrementBtn.addEventListener('click', addBidIncrementRow);
 
     bidIncrementsContainer.addEventListener('click', (event) => {
         if (event.target.classList.contains('btn-remove-increment')) {
-            if (bidIncrementsContainer.children.length > 1) {
-                event.target.closest('.bid-increment-row').remove();
+            if (!event.target.disabled) {
+                event.target.closest('.form-row.bid-increment-row').remove();
+                updateRemoveButtonsState();
             }
         }
     });
 
-    // Initial population of dynamic fields on page load
-    updatePositionLimits();
-    updateDivisionLimits();
+    updateRemoveButtonsState(); // Initial call
 });
+
