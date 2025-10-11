@@ -8,11 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // --- NEW: Element references for dynamic content ---
     const playerGrid = document.getElementById('player-grid-container');
     const teamsList = document.getElementById('teams-list-container');
     const playerDetailsPanel = document.getElementById('player-details-panel');
-
 
     try {
         const response = await fetch(`/api/auctions/${auctionId}`);
@@ -27,14 +25,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // ... (Close/Reopen button logic remains the same)
 
-        // --- NEW: Fetch and display players ---
+        // Fetch and display players
         const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
         const players = await playersRes.json();
-        playerGrid.innerHTML = ''; // Clear placeholder
+        playerGrid.innerHTML = '';
         if (players.length > 0) {
             players.forEach(player => {
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card';
+                // --- NEW: Add a data attribute to store the player's unique DB ID ---
+                playerCard.dataset.playerId = player.dbId;
                 playerCard.innerHTML = `
                     <div class="player-card-id">${player.id}</div>
                     <div class="player-card-name">${player.name}</div>
@@ -43,18 +43,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 playerGrid.appendChild(playerCard);
             });
         } else {
-            playerGrid.innerHTML = '<p class="empty-message">No players found. Add players via the "Manage Players" button.</p>';
+            playerGrid.innerHTML = '<p class="empty-message">No players found.</p>';
         }
 
-        // --- NEW: Fetch and display teams ---
+        // Fetch and display teams
         const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
         const teams = await teamsRes.json();
-        teamsList.innerHTML = ''; // Clear placeholder
+        teamsList.innerHTML = '';
         if (teams.length > 0) {
             teams.forEach(team => {
                 const teamItem = document.createElement('div');
                 teamItem.className = 'team-list-item';
-                // Calculate starting balance
                 const budget = parseFloat(auction.budget);
                 const captainValue = parseFloat(team.captainValue);
                 const balance = budget - captainValue;
@@ -69,9 +68,52 @@ document.addEventListener('DOMContentLoaded', async () => {
                 teamsList.appendChild(teamItem);
             });
         } else {
-            teamsList.innerHTML = '<p class="empty-message">No teams found. Add teams via the "Manage Teams" button.</p>';
+            teamsList.innerHTML = '<p class="empty-message">No teams found.</p>';
         }
 
+        // --- NEW: Add click listener for selecting a player ---
+        playerGrid.addEventListener('click', async (event) => {
+            const selectedCard = event.target.closest('.player-card');
+            if (!selectedCard) return;
+
+            const playerId = selectedCard.dataset.playerId;
+
+            // Remove 'selected' class from any other card
+            document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
+            // Add 'selected' class to the clicked card
+            selectedCard.classList.add('selected');
+
+            // Fetch full player details
+            try {
+                const playerRes = await fetch(`/api/auctions/${auctionId}/players/${playerId}`);
+                const player = await playerRes.json();
+                
+                // Display player details in the panel
+                playerDetailsPanel.innerHTML = `
+                    <div class="current-player-details">
+                        <h3 class="current-player-name">${player.name}</h3>
+                        <p class="current-player-info">${player.position} | ${player.experience}</p>
+                        <div class="current-player-price-info">
+                            <span>Base Price</span>
+                            <span class="price-value">${new Intl.NumberFormat().format(player.basePrice)}</span>
+                        </div>
+                         <div class="current-player-price-info current-bid">
+                            <span>Current Bid</span>
+                            <span class="price-value">--</span>
+                        </div>
+                        <p class="current-player-merits">${player.merits || ''}</p>
+                    </div>
+                    <div class="current-player-actions">
+                        <button class="btn btn-primary" style="width: 100%;">Finalize Bid (Sell)</button>
+                        <button class="btn btn-secondary" style="width: 100%;">Mark Unsold</button>
+                    </div>
+                `;
+
+            } catch (err) {
+                console.error('Failed to fetch player details:', err);
+                playerDetailsPanel.innerHTML = '<p class="error-message">Could not load player details.</p>';
+            }
+        });
 
     } catch (error) {
         console.error('Failed to load auction details:', error);
