@@ -73,6 +73,7 @@
                         <label><input type="checkbox" name="division" value="senior_men" checked> Senior(Men)</label>
                         <label><input type="checkbox" name="division" value="senior_women" checked> Senior(Women)</label>
                         <label><input type="checkbox" name="division" value="youth_men" checked> Youth(Men)</label>
+                        <label><input type="checkbox" name="division" value="youth_women" checked> Youth(Women)</label>
                         <label><input type="checkbox" name="division" value="junior_boys"> Junior(Boys)</label>
                         <label><input type="checkbox" name="division" value="junior_girls"> Junior(Girls)</label>
                     </div>
@@ -80,27 +81,14 @@
                 <div class="limits-container">
                      <div class="division-limits">
                         <h3>Division Limits</h3>
-                        <div class="form-row limit-row">
-                            <label>Senior(Men)</label>
-                            <input type="number" placeholder="Min" value="2">
-                            <input type="number" placeholder="Max" value="4">
-                        </div>
-                         <div class="form-row limit-row">
-                            <label>Senior(Women)</label>
-                            <input type="number" placeholder="Min">
-                            <input type="number" placeholder="Max">
-                        </div>
-                        <div class="form-row limit-row">
-                            <label>Youth(Men)</label>
-                            <input type="number" placeholder="Min" value="4">
-                            <input type="number" placeholder="Max">
+                        <!-- CHANGE 1: The hardcoded division rows have been removed. -->
+                        <!-- CHANGE 2: A new container div with an ID has been added. -->
+                        <div id="division-limits-rows-container">
+                            <!-- JavaScript will now create the rows here -->
                         </div>
                     </div>
                     <div class="position-limits">
-                        <!-- CHANGE 1: The heading now has an ID so we can change its text -->
                         <h3 id="position-limits-heading">Position Limits (Football)</h3>
-                        <!-- CHANGE 2: The container div now has an ID so the script can find it. -->
-                        <!-- CHANGE 3: The hardcoded football position rows have been removed from here. -->
                          <div id="position-limits-rows-container">
                             <!-- JavaScript will now create the rows here -->
                          </div>
@@ -113,7 +101,7 @@
             </div>
         </form>
     </div>
-    <!-- CHANGE 4: Add the script tag at the bottom to load our JavaScript file -->
+    <!-- THE FIX: Changed src="create-auction.js" to src="/create-auction.js" -->
     <script src="/create-auction.js"></script>
 </body>
 </html>
