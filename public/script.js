@@ -1,21 +1,10 @@
-// public/script.js - This code runs in the user's browser
+document.getElementById('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-// Wait until the HTML document is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Find the login form in our HTML
-    const loginForm = document.getElementById('login-form');
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-    // Add an event listener for when the form is submitted
-    loginForm.addEventListener('submit', async (event) => {
-        // Prevent the form from doing its default browser action (reloading the page)
-        event.preventDefault();
-
-        // Get the values from the input fields
-        const username = event.target.username.value;
-        const password = event.target.password.value;
-
-        // Send the login data to our server
-        // We use the 'fetch' API to make a POST request to the '/login' route
+    try {
         const response = await fetch('/login', {
             method: 'POST',
             headers: {
@@ -24,18 +13,20 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ username, password }),
         });
 
-        // Get the server's response
-        const result = await response.json();
-
-        // Check if the login was successful
-        if (result.success) {
-            // If successful, redirect the user to the admin dashboard
-            // We will create this page in the next step
-            window.location.href = '/admin';
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                // Redirect to the admin dashboard on successful login
+                window.location.href = result.redirectUrl;
+            } else {
+                alert(result.message);
+            }
         } else {
-            // If it failed, show an alert message
-            // In a real app, we'd show a nicer message, but this is good for now
-            alert(result.message);
+            alert('An error occurred. Please try again.');
         }
-    });
+    } catch (error) {
+        console.error('Login failed:', error);
+        alert('Could not connect to the server.');
+    }
 });
+

@@ -1,15 +1,11 @@
-/* ... existing login page styles ... */
-
-/* =================== ADMIN DASHBOARD STYLES =================== */
-
+/* =================== GLOBAL STYLES =================== */
 body {
     margin: 0;
-    /* OLD: font-family: 'Inter', sans-serif; */
-    /* NEW: A modern, system-native font stack */
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #f0f2f5;
 }
 
+/* Utility class to vertically center a page's content */
 .page-center-vertical {
     display: flex;
     justify-content: center;
@@ -17,153 +13,373 @@ body {
     height: 100vh;
 }
 
+/* =================== LOGIN PAGE STYLES =================== */
 .login-container {
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
+    gap: 100px;
+    padding: 20px;
 }
 
-.dashboard-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 40px auto;
+.login-branding {
+    flex-basis: 50%;
+}
+
+.login-branding h1 {
+    font-size: 56px;
+    color: #1877f2;
+    margin: 0;
+    font-weight: 700;
+}
+
+.login-form-container {
+    background-color: #ffffff;
     padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 380px;
+    text-align: center;
+}
+
+.login-form-container input {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #dddfe2;
+    font-size: 17px;
     box-sizing: border-box;
 }
 
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-.dashboard-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1d2129;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-}
-
-.filter-group label {
-    font-size: 16px;
-    color: #606770;
-    margin-left: 8px;
+.login-form-container button {
+    width: 100%;
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    padding: 14px 16px;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
+}
+
+/* =================== ADMIN DASHBOARD STYLES =================== */
+.admin-container {
+    padding: 40px;
+}
+
+.admin-container header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 .auctions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+    gap: 20px;
 }
 
 .auction-card {
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    position: relative; /* Needed for the overlay */
+    transition: box-shadow 0.2s;
+    position: relative;
 }
 
 .auction-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.auction-image {
+.auction-card-banner {
     width: 100%;
     height: 150px;
     object-fit: cover;
-    display: block;
-}
-
-.card-content {
-    padding: 16px;
-}
-
-.card-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-    color: #1d2129;
-}
-
-.card-subtitle {
-    font-size: 14px;
-    color: #606770;
-    margin: 0 0 12px 0;
-}
-
-.card-date {
-    font-size: 12px;
-    color: #8a8d91;
-    margin: 0;
-}
-
-/* Styles for the "Create Auction" card */
-.create-card {
-    border: 2px dashed #ccd0d5;
-    background-color: #f7f8fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 275px; /* Match height of other cards */
-    box-shadow: none;
-}
-
-.create-card:hover {
-    border-color: #1877f2;
-    background-color: #eff5ff;
-}
-
-.create-content {
-    text-align: center;
-    color: #606770;
-}
-
-.create-content span {
-    font-size: 48px;
-    font-weight: 200;
-    color: #1877f2;
-}
-
-.create-content p {
-    margin-top: 8px;
-    font-weight: 500;
-}
-
-/* Styles for closed auctions */
-.auction-card.is-closed .auction-image {
-    filter: grayscale(100%);
 }
 
 .closed-overlay {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 150px; /* Match image height */
-    background-color: rgba(50, 50, 50, 0.6);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.closed-overlay span {
     color: white;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: bold;
+    text-transform: uppercase;
     letter-spacing: 2px;
-    border: 2px solid white;
-    padding: 8px 16px;
-    border-radius: 4px;
 }
 
+.auction-card-info {
+    padding: 16px;
+}
+
+.auction-card-info h2 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+}
+
+.auction-card-info p {
+    margin: 0;
+    color: #606770;
+    font-size: 14px;
+}
+
+.create-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    border: 2px dashed #ccd0d5;
+    background-color: #f7f8fa;
+    color: #606770;
+}
+
+.create-card:hover {
+    background-color: #e4e6eb;
+}
+
+.create-content {
+    text-align: center;
+}
+
+.create-content span {
+    font-size: 48px;
+    font-weight: 300;
+}
+
+.create-content p {
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+/* =================== CREATE AUCTION FORM STYLES =================== */
+.create-card-link {
+    text-decoration: none;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px 40px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-header {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #dddfe2;
+    padding-bottom: 20px;
+}
+
+.form-header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.back-link {
+    display: block;
+    margin-bottom: 16px;
+    color: #1877f2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.form-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #1d2129;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #606770;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccd0d5;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: #1877f2;
+    box-shadow: 0 0 0 2px #e7f3ff;
+}
+
+.image-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.image-preview {
+    width: 200px;
+    height: 112px;
+    border: 1px dashed #ccd0d5;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f7f8fa;
+}
+
+.image-preview-text {
+    color: #8a8d91;
+    font-size: 14px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #1877f2;
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #166fe5;
+}
+
+.btn-secondary {
+    background-color: #e4e6eb;
+    color: #1d2129;
+}
+.btn-secondary:hover {
+    background-color: #d8dbdf;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+#bid-increments-container .form-row {
+    margin-bottom: 10px;
+}
+
+.btn-remove-increment {
+    background: none;
+    border: none;
+    color: #8a8d91;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+.btn-remove-increment:hover {
+    color: #1d2129;
+}
+.btn-remove-increment:disabled {
+    color: #ccd0d5;
+    cursor: not-allowed;
+}
+
+#add-increment-btn {
+    margin-top: 10px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-weight: 400;
+}
+
+.checkbox-group input {
+    margin-right: 8px;
+}
+
+.limits-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+}
+.division-limits, .position-limits {
+    flex: 1;
+}
+
+.limits-container h3 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.limit-row {
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.limit-row label {
+    flex-basis: 40%;
+}
+.limit-row input {
+    flex-basis: 25%;
+}
+
+.form-actions {
+    margin-top: 40px;
+    text-align: right;
+}
+
+.form-divider {
+    border-top: 1px solid #e0e0e0;
+    margin-top: 32px;
+    padding-top: 32px;
+}
