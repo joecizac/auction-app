@@ -156,10 +156,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .form-section h2 { font-size: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--medium-gray); padding-bottom: 12px; }
 .form-row { display: flex; gap: 20px; align-items: center; }
 
-/* FIX: Add margin-bottom for spacing between tier rows */
-#bid-increments-container .form-row.bid-increment-row {
-    margin-bottom: 16px;
-}
+#bid-increments-container .form-row.bid-increment-row { margin-bottom: 16px; }
 #bid-increments-container .form-row.bid-increment-row input {
     flex: 1;
     padding: 12px;
@@ -169,56 +166,24 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 }
 #add-increment-btn { margin-top: 16px; }
 
-.rules-layout {
-    /* max-width: 800px; */ /* THE FIX: Removing this rule allows the container to be flexible */
-}
-
-/* FIX: Checkboxes are now left-aligned again */
+.rules-layout {}
 .checkbox-group { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 20px; }
 .checkbox-group label { display: flex; align-items: center; gap: 8px; }
 
-.limits-container {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    align-items: flex-start;
-    margin-top: 24px;
-}
-#division-limits-container, #position-limits-container {
-    max-width: 300px;
-    flex-grow: 1;
-}
+.limits-container { display: flex; justify-content: center; gap: 60px; align-items: flex-start; margin-top: 24px; }
+#division-limits-container, #position-limits-container { max-width: 300px; flex-grow: 1; }
 .limit-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .limit-row label { flex-basis: 50%; }
 .limit-row div { display: flex; gap: 8px; }
-.limit-row input {
-    max-width: 90px;
-    min-width: 60px;
-    text-align: center;
-    padding: 12px;
-    border: 1px solid #ced4da;
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    font-size: 16px;
-}
-
-#division-limits-container h3, #position-limits-container h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    text-align: center;
-}
+.limit-row input { max-width: 90px; min-width: 60px; text-align: center; padding: 12px; border: 1px solid #ced4da; border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; }
+#division-limits-container h3, #position-limits-container h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; text-align: center; }
 
 .btn-remove-increment {
     background-color: #fee2e2; color: #ef4444; border: none; border-radius: 50%;
     width: 24px; height: 24px; font-weight: bold; cursor: pointer;
     display: flex; justify-content: center; align-items: center; flex-shrink: 0;
 }
-.btn-remove-increment:disabled {
-    background-color: var(--medium-gray);
-    color: #adb5bd;
-    cursor: not-allowed;
-}
+.btn-remove-increment:disabled { background-color: var(--medium-gray); color: #adb5bd; cursor: not-allowed; }
 
 .form-actions { text-align: right; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--medium-gray); }
 
@@ -229,12 +194,18 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .panel-body .card { padding: 24px; }
 .panel-footer { margin-top: 24px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
 
-/* --- STYLES for Live Auction Panel --- */
-.player-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 16px;
-}
+/* Player Management List */
+.player-table { width: 100%; border-collapse: collapse; }
+.player-table th, .player-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--medium-gray); }
+.player-table th { font-size: 14px; font-weight: 600; color: var(--secondary-color); text-transform: uppercase; }
+.player-table tbody tr:last-child td { border-bottom: none; }
+.player-table tbody tr { transition: background-color 0.2s; }
+.player-table tbody tr:hover { background-color: var(--light-gray); cursor: pointer; }
+.player-id-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: var(--medium-gray); font-weight: bold; font-size: 12px; }
+.btn-icon { background: none; border: none; cursor: pointer; font-size: 20px; font-weight: bold; color: var(--secondary-color); }
+
+/* Live Auction Panel */
+.player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; }
 
 .player-card {
     background-color: var(--light-gray);
@@ -245,141 +216,35 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
-.player-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--box-shadow);
-    border-color: var(--primary-color);
-}
+.player-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow); border-color: var(--primary-color); }
+.player-card.selected { border-color: var(--primary-color); background-color: #e7f3ff; transform: translateY(0); box-shadow: none; }
+.player-card.sold { background-color: #f0f2f5; color: #adb5bd; cursor: not-allowed; border-color: #dee2e6; }
+.player-card.unsold { background-color: #fff5f5; color: #c53030; border-color: #fbcaca; }
 
-.player-card-id {
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--secondary-color);
-    margin-bottom: 4px;
-}
-.player-card-name {
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-.player-card-position {
-    font-size: 14px;
-    color: var(--secondary-color);
-}
+.player-card-id { font-size: 12px; font-weight: bold; color: var(--secondary-color); margin-bottom: 4px; }
+.player-card-name { font-weight: 600; margin-bottom: 4px; }
+.player-card-position { font-size: 14px; color: var(--secondary-color); }
 
-.team-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--medium-gray);
-}
-.team-list-item:last-child {
-    border-bottom: none;
-}
-.team-info {
-    display: flex;
-    flex-direction: column;
-}
-.team-name {
-    font-weight: 600;
-}
-.team-budget {
-    font-size: 14px;
-    color: #28a745; /* Green for budget */
-}
-.team-player-count {
-    font-size: 14px;
-    background-color: var(--medium-gray);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-}
+.team-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); transition: all 0.2s; }
+.team-list-item:last-child { border-bottom: none; }
+.team-info { display: flex; flex-direction: column; }
+.team-name { font-weight: 600; }
+.team-budget { font-size: 14px; color: #28a745; }
+.team-player-count { font-size: 14px; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+.empty-message { color: var(--secondary-color); text-align: center; padding: 24px; }
 
-.empty-message {
-    color: var(--secondary-color);
-    text-align: center;
-    padding: 24px;
-}
+/* Bidding State */
+.team-list-item.bidding { background-color: #e7f3ff; border-left: 4px solid var(--primary-color); padding-left: 12px; }
+.bidding-team-name { font-weight: bold; color: var(--primary-color); }
 
+.player-details-panel { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.current-player-details { text-align: center; }
+.current-player-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.current-player-info { font-size: 16px; color: var(--secondary-color); margin-bottom: 24px; }
+.current-player-price-info { display: flex; justify-content: space-between; font-size: 16px; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
+.current-player-price-info:first-of-type { border-top: 1px solid var(--medium-gray); }
+.current-player-price-info .price-value { font-weight: bold; }
+.current-player-price-info.current-bid .price-value { color: #28a745; font-size: 20px; }
+.current-player-merits { font-style: italic; color: var(--secondary-color); margin-top: 24px; font-size: 14px; }
+.current-player-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 
-/* --- STYLES for Selected Player and Details Panel --- */
-
-/* Style for the selected player card in the pool */
-.player-card.selected {
-    border-color: var(--primary-color);
-    background-color: #e7f3ff;
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-/* Layout for the details panel */
-.player-details-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-}
-
-.current-player-details {
-    text-align: center;
-}
-
-.current-player-name {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.current-player-info {
-    font-size: 16px;
-    color: var(--secondary-color);
-    margin-bottom: 24px;
-}
-
-.current-player-price-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--medium-gray);
-}
-.current-player-price-info:first-of-type {
-    border-top: 1px solid var(--medium-gray);
-}
-
-.current-player-price-info .price-value {
-    font-weight: bold;
-}
-
-.current-player-price-info.current-bid .price-value {
-    color: #28a745;
-    font-size: 20px;
-}
-
-.current-player-merits {
-    font-style: italic;
-    color: var(--secondary-color);
-    margin-top: 24px;
-    font-size: 14px;
-}
-
-.current-player-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-/* --- STYLES for Bidding State --- */
-
-/* Style for the team that is currently the highest bidder */
-.team-list-item.bidding {
-    background-color: #e7f3ff;
-    border-left: 4px solid var(--primary-color);
-    padding-left: 12px;
-}
-
-.bidding-team-name {
-    font-weight: bold;
-    color: var(--primary-color);
-}
