@@ -248,3 +248,68 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .current-player-merits { font-style: italic; color: var(--secondary-color); margin-top: 24px; font-size: 14px; }
 .current-player-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 
+/* Presenter View */
+.presenter-container {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--dark-gray);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 48px;
+    box-sizing: border-box;
+}
+
+.presenter-idle h1 {
+    font-size: 64px;
+    font-weight: 300;
+    color: var(--secondary-color);
+}
+
+.presenter-active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    width: 100%;
+    height: 100%;
+}
+
+.player-info-card, .bidding-info-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.player-name {
+    font-size: 96px;
+    font-weight: 700;
+}
+
+.player-details {
+    font-size: 48px;
+    color: var(--secondary-color);
+}
+
+.bid-label, .bidding-team-label {
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--secondary-color);
+}
+
+.bid-amount {
+    font-size: 128px;
+    font-weight: 700;
+    color: #28a745; /* Green */
+    margin: 24px 0;
+}
+
+.bidding-team-name {
+    font-size: 64px;
+    font-weight: 600;
+    color: var(--primary-color);
+}

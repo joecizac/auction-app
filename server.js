@@ -1,12 +1,16 @@
 const express = require('express');
 const path = require('path');
+const http = require('http');
 const fs = require('fs');
+const { Server } = require("socket.io");
 const { Low, JSONFile } = require('lowdb');
 const multer = require('multer');
 const csv = require('csv-parser');
 const streamifier = require('streamifier');
 
 const app = express();
+const server = http.createServer(app); // Create an HTTP server from our Express app
+const io = new Server(server); // Initialize Socket.IO on the HTTP server
 const PORT = 3000;
 
 // --- Database Setup ---
@@ -29,6 +33,21 @@ const initializeDatabase = async () => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- Real-Time Logic with Socket.IO ---
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+
+    // Listen for updates from the admin panel
+    socket.on('adminAction', (state) => {
+        // Broadcast the update to all other clients (like the presenter view)
+        socket.broadcast.emit('auctionUpdate', state);
+    });
+});
+
 
 // PAGE ROUTES
 app.post('/login', (req, res) => {
@@ -49,7 +68,7 @@ app.get('/admin/auction/:auctionId/teams/:teamId/edit', (req, res) => res.sendFi
 app.get('/admin/auction/:auctionId/players', (req, res) => res.sendFile(path.join(__dirname, 'public', 'manage-players.html')));
 app.get('/admin/auction/:auctionId/players/new', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
 app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
-
+app.get('/presenter/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'presenter.html')));
 
 // --- API ROUTES ---
 
@@ -293,7 +312,7 @@ app.put('/api/auctions/:auctionId/players/:playerId/status', async (req, res) =>
 // Start the server
 const startServer = async () => {
     await initializeDatabase();
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
 };
