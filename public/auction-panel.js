@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
+
+    const socket = io();
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 1];
 
@@ -10,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectedPlayer: null,
         currentBid: 0,
         biddingTeamId: null,
+        biddingTeamName: null,
     };
 
     // --- Element References ---
@@ -99,9 +102,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         liveAuctionState.selectedPlayer = null;
         liveAuctionState.currentBid = 0;
         liveAuctionState.biddingTeamId = null;
+        liveAuctionState.biddingTeamName = null;
         playerDetailsPanel.innerHTML = '<p class="empty-message">Select a player to auction</p>';
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
+
+        // Broadcast the reset state
+        socket.emit('adminAction', {
+            selectedPlayer: null,
+            currentBid: 0,
+            biddingTeamName: null
+        });
     }
 
     function updatePlayerDetailsPanel() {
@@ -117,11 +128,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let biddingTeamName = '--';
         if (biddingTeamId) {
-            const teamElement = teamsList.querySelector(`[data-team-id="${biddingTeamId}"]`);
-            if (teamElement) {
-                biddingTeamName = teamElement.querySelector('.team-name').textContent;
-                teamElement.classList.add('bidding');
+            const team = liveAuctionState.teams.find(t => t.id === biddingTeamId);
+            if (team) {
+                biddingTeamName = team.name;
+                liveAuctionState.biddingTeamName = team.name; // Store name in state
+                const teamElement = teamsList.querySelector(`[data-team-id="${biddingTeamId}"]`);
+                if (teamElement) teamElement.classList.add('bidding');
             }
+        } else {
+             liveAuctionState.biddingTeamName = null;
         }
 
         playerDetailsPanel.innerHTML = `
@@ -148,6 +163,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <button id="mark-unsold-btn" class="btn btn-secondary" style="width: 100%;">Mark Unsold</button>
             </div>
         `;
+
+        // Broadcast the updated state
+        socket.emit('adminAction', {
+            selectedPlayer: liveAuctionState.selectedPlayer,
+            currentBid: liveAuctionState.currentBid,
+            biddingTeamName: liveAuctionState.biddingTeamName
+        });
     }
 
     // --- Event Listeners ---
