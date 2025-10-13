@@ -184,6 +184,56 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentBid,
             biddingTeamName
         });
+
+        updateTeamBiddingStatus();
+    }
+
+    // Function to manage team bidding eligibility 
+    function updateTeamBiddingStatus() {
+        if (!liveAuctionState.selectedPlayer) return;
+
+        const nextBid = calculateNextBid(liveAuctionState.currentBid);
+
+        liveAuctionState.teams.forEach(team => {
+            const teamElement = teamsList.querySelector(`[data-team-id="${team.id}"]`);
+            if (!teamElement) return;
+
+            // Calculate current balance
+            let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
+            liveAuctionState.players.forEach(p => {
+                if (p.status === 'sold' && p.owningTeamId === team.id) {
+                    balance -= parseFloat(p.soldPrice);
+                }
+            });
+
+            // Disable team if they can't afford the next bid
+            if (balance < nextBid) {
+                teamElement.classList.add('disabled');
+            } else {
+                teamElement.classList.remove('disabled');
+            }
+        });
+    }
+    
+    // Helper function to calculate the next bid amount
+    function calculateNextBid(currentBid) {
+        let nextBid = currentBid;
+        const bidIncrements = liveAuctionState.auction.bidIncrements || [];
+        let increment = 25000; // Default increment
+
+        for (const tier of bidIncrements) {
+            const from = parseFloat(tier.from);
+            const to = parseFloat(tier.to) || Infinity;
+            if (nextBid >= from && nextBid < to) {
+                increment = parseFloat(tier.increment);
+                break;
+            }
+        }
+        if (bidIncrements.length > 0 && nextBid >= (parseFloat(bidIncrements[bidIncrements.length - 1].to) || 0)) {
+            increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
+        }
+        
+        return nextBid + increment;
     }
 
     // --- Event Listeners ---
@@ -205,25 +255,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     teamsList.addEventListener('click', (event) => {
         const selectedTeam = event.target.closest('.team-list-item');
-        if (!selectedTeam || !liveAuctionState.selectedPlayer) return;
-        const teamId = selectedTeam.dataset.teamId;
-        let nextBid = liveAuctionState.currentBid;
-        // THE FIX: Robustly get bid increments, defaulting to an empty array
-        const bidIncrements = liveAuctionState.auction.bidIncrements || [];
-        let increment = 25000;
+        if (!selectedTeam || !liveAuctionState.selectedPlayer || selectedTeam.classList.contains('disabled')) return;
         
-        for (const tier of bidIncrements) {
-            const from = parseFloat(tier.from);
-            const to = parseFloat(tier.to);
-            if (nextBid >= from && (!to || nextBid < to)) {
-                increment = parseFloat(tier.increment);
-                break;
-            }
-        }
-        if (bidIncrements.length > 0 && bidIncrements[bidIncrements.length-1].to && nextBid >= parseFloat(bidIncrements[bidIncrements.length - 1].to)) {
-             increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
-        }
-        nextBid += increment;
+        const teamId = selectedTeam.dataset.teamId;
+        if (teamId === liveAuctionState.biddingTeamId) return;
+
+        const nextBid = calculateNextBid(liveAuctionState.currentBid);
 
         liveAuctionState.currentBid = nextBid;
         liveAuctionState.biddingTeamId = teamId;

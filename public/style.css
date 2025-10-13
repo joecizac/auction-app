@@ -294,6 +294,12 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .team-name { font-weight: 600; }
 .team-budget { font-size: 14px; color: #28a745; }
 .team-player-count { font-size: 14px; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+.team-list-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    pointer-events: none; /* Disables click events */
+}
 
 .player-details-panel { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
 .current-player-details { text-align: center; }
