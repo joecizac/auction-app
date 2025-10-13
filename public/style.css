@@ -166,7 +166,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 }
 #add-increment-btn { margin-top: 16px; }
 
-.rules-layout {}
+.rules-layout { /* This class is no longer centered */ }
 .checkbox-group { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 20px; }
 .checkbox-group label { display: flex; align-items: center; gap: 8px; }
 
@@ -184,58 +184,82 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     display: flex; justify-content: center; align-items: center; flex-shrink: 0;
 }
 .btn-remove-increment:disabled { background-color: var(--medium-gray); color: #adb5bd; cursor: not-allowed; }
-
 .form-actions { text-align: right; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--medium-gray); }
 
 /* Auction Admin Panel */
 .panel-header { padding: 16px; }
 .panel-header .header-left, .panel-header .header-right { display: flex; align-items: center; gap: 16px; }
-.panel-body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 24px; }
-.panel-body .card { padding: 24px; }
-.panel-footer { margin-top: 24px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
-
-/* Player Management List */
-.player-table { width: 100%; border-collapse: collapse; }
-.player-table th, .player-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--medium-gray); }
-.player-table th { font-size: 14px; font-weight: 600; color: var(--secondary-color); text-transform: uppercase; }
-.player-table tbody tr:last-child td { border-bottom: none; }
-.player-table tbody tr { transition: background-color 0.2s; }
-.player-table tbody tr:hover { background-color: var(--light-gray); cursor: pointer; }
-.player-id-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: var(--medium-gray); font-weight: bold; font-size: 12px; }
-.btn-icon { background: none; border: none; cursor: pointer; font-size: 20px; font-weight: bold; color: var(--secondary-color); }
-
-/* Live Auction Panel */
-.player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; }
-
-.player-card {
-    background-color: var(--light-gray);
-    border: 1px solid var(--medium-gray);
-    border-radius: var(--border-radius);
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+.panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
 }
+.panel-body .card { padding: 24px; }
+.panel-footer {
+    margin-top: 48px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-pool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.bottom-panels-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.panel-body .card {
+    padding: 24px;
+}
+
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+    max-height: 280px; /* Approx 3 rows of player cards */
+    overflow-y: auto;
+    align-content: start; /* Prevents vertical stretching of items */
+}
+.player-card { background-color: var(--light-gray); border: 1px solid var(--medium-gray); border-radius: var(--border-radius); padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease-in-out; }
 .player-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow); border-color: var(--primary-color); }
 .player-card.selected { border-color: var(--primary-color); background-color: #e7f3ff; transform: translateY(0); box-shadow: none; }
-.player-card.sold { background-color: #f0f2f5; color: #adb5bd; cursor: not-allowed; border-color: #dee2e6; }
-.player-card.unsold { background-color: #fff5f5; color: #c53030; border-color: #fbcaca; }
+.player-card.sold {
+    background-color: #e9ecef; /* Light grey */
+    color: #adb5bd; /* Lighter text */
+    cursor: not-allowed;
+    border-color: transparent;
+}
+.player-card.sold:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.player-card.unsold {
+    background-color: #fff0f6; /* A light pink/orange tint */
+    border: 1px dashed var(--danger-color);
+    cursor: pointer; /* Can be re-selected */
+}
+.player-card.unsold:hover { transform: none; box-shadow: none; } /* Unsold players can be re-selected */
 
 .player-card-id { font-size: 12px; font-weight: bold; color: var(--secondary-color); margin-bottom: 4px; }
 .player-card-name { font-weight: 600; margin-bottom: 4px; }
 .player-card-position { font-size: 14px; color: var(--secondary-color); }
 
-.team-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); transition: all 0.2s; }
+.team-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
 .team-list-item:last-child { border-bottom: none; }
+.team-list-item.bidding { background-color: #e7f3ff; border-left: 4px solid var(--primary-color); padding-left: 12px; margin-left: -16px; }
 .team-info { display: flex; flex-direction: column; }
 .team-name { font-weight: 600; }
 .team-budget { font-size: 14px; color: #28a745; }
 .team-player-count { font-size: 14px; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-.empty-message { color: var(--secondary-color); text-align: center; padding: 24px; }
-
-/* Bidding State */
-.team-list-item.bidding { background-color: #e7f3ff; border-left: 4px solid var(--primary-color); padding-left: 12px; }
-.bidding-team-name { font-weight: bold; color: var(--primary-color); }
 
 .player-details-panel { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
 .current-player-details { text-align: center; }
@@ -245,10 +269,21 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .current-player-price-info:first-of-type { border-top: 1px solid var(--medium-gray); }
 .current-player-price-info .price-value { font-weight: bold; }
 .current-player-price-info.current-bid .price-value { color: #28a745; font-size: 20px; }
+.bidding-team-name { font-weight: bold; color: var(--primary-color); }
 .current-player-merits { font-style: italic; color: var(--secondary-color); margin-top: 24px; font-size: 14px; }
 .current-player-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 
-/* Presenter View */
+.player-table { width: 100%; border-collapse: collapse; }
+.player-table th, .player-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--medium-gray); }
+.player-table th { font-size: 14px; font-weight: 600; color: var(--secondary-color); text-transform: uppercase; }
+.player-table tbody tr:last-child td { border-bottom: none; }
+.player-table tbody tr { transition: background-color 0.2s; cursor: pointer; }
+.player-table tbody tr:hover { background-color: var(--light-gray); }
+.player-id-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: var(--medium-gray); font-weight: bold; font-size: 12px; }
+.btn-icon { background: none; border: none; cursor: pointer; font-size: 20px; font-weight: bold; color: var(--secondary-color); }
+
+
+/* --- REFACTORED STYLES for Presenter View --- */
 .presenter-container {
     width: 100vw;
     height: 100vh;
@@ -267,14 +302,17 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     color: var(--secondary-color);
 }
 
-.presenter-active {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
+/* Base layout for ALL active states */
+.presenter-active, .presenter-sold, .presenter-unsold {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     height: 100%;
+    gap: 48px;
 }
 
+/* Bidding View (two cards) */
 .player-info-card, .bidding-info-card {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: var(--border-radius);
@@ -283,33 +321,34 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     flex-direction: column;
     justify-content: center;
     text-align: center;
+    flex: 1; /* Allows cards to grow and fill space */
+    height: 90%; /* Consistent height */
 }
 
-.player-name {
-    font-size: 96px;
-    font-weight: 700;
+.player-name { font-size: 96px; font-weight: 700; }
+.player-details { font-size: 48px; color: var(--secondary-color); }
+.bid-label, .bidding-team-label { font-size: 48px; font-weight: 300; color: var(--secondary-color); }
+.bid-amount { font-size: 128px; font-weight: 700; color: #28a745; margin: 24px 0; }
+.bidding-team-name { font-size: 64px; font-weight: 600; color: var(--primary-color); }
+
+/* Result View (one large card) for Sold/Unsold */
+.result-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 90%; /* THE FIX: Make the single card wider */
+    height: 90%; /* THE FIX: Give it a consistent height */
+    max-width: 1400px;
 }
 
-.player-details {
-    font-size: 48px;
-    color: var(--secondary-color);
-}
+.result-player-name { font-size: 80px; font-weight: 300; color: var(--secondary-color); }
+.result-status-sold, .result-status-unsold { font-size: 96px; font-weight: 700; margin: 24px 0; }
+.result-status-sold { color: #28a745; }
+.result-status-unsold { color: var(--danger-color); }
+.result-team-name { font-size: 96px; font-weight: 700; color: var(--primary-color); margin-bottom: 24px; }
+.result-final-price { font-size: 80px; font-weight: 600; color: #fff; }
 
-.bid-label, .bidding-team-label {
-    font-size: 48px;
-    font-weight: 300;
-    color: var(--secondary-color);
-}
-
-.bid-amount {
-    font-size: 128px;
-    font-weight: 700;
-    color: #28a745; /* Green */
-    margin: 24px 0;
-}
-
-.bidding-team-name {
-    font-size: 64px;
-    font-weight: 600;
-    color: var(--primary-color);
-}

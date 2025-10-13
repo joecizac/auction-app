@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
-
     const socket = io();
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 1];
 
-    // --- State Management ---
+    // State Management
     let liveAuctionState = {
         auction: null,
         players: [],
@@ -12,10 +11,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectedPlayer: null,
         currentBid: 0,
         biddingTeamId: null,
-        biddingTeamName: null,
     };
 
-    // --- Element References ---
+    // Element References
     const playerGrid = document.getElementById('player-grid-container');
     const teamsList = document.getElementById('teams-list-container');
     const playerDetailsPanel = document.getElementById('player-details-panel');
@@ -26,9 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // --- Initialization and Rendering ---
     async function initializePanel() {
         try {
-            // --- Initial Data Fetching ---
             const auctionRes = await fetch(`/api/auctions/${auctionId}`);
             liveAuctionState.auction = await auctionRes.json();
             const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
@@ -36,160 +34,119 @@ document.addEventListener('DOMContentLoaded', async () => {
             const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
             liveAuctionState.teams = await teamsRes.json();
             
-            // --- Render Initial UI ---
             auctionTitleHeading.textContent = liveAuctionState.auction.title;
             document.getElementById('manage-players-link').href = `/admin/auction/${auctionId}/players`;
             document.getElementById('manage-teams-link').href = `/admin/auction/${auctionId}/teams`;
             document.getElementById('edit-auction-link').href = `/admin/auction/${auctionId}/edit`;
-
+            
             renderPlayers();
             renderTeams();
-            resetPlayerDetailsPanel();
+            resetPlayerDetailsPanel(false); 
 
         } catch (error) {
-            console.error('Failed to initialize auction panel:', error);
-            auctionTitleHeading.textContent = 'Error: Auction Not Found';
+            console.error('Failed to initialize panel:', error);
+            auctionTitleHeading.textContent = 'Error: Could not load auction data.';
         }
     }
 
-    // --- UI Render Functions ---
     function renderPlayers() {
         playerGrid.innerHTML = '';
-        if (liveAuctionState.players.length > 0) {
-            liveAuctionState.players.forEach(player => {
-                const playerCard = document.createElement('div');
-                playerCard.className = 'player-card';
-                playerCard.dataset.playerId = player.dbId;
-                if (player.status === 'sold') playerCard.classList.add('sold');
-                if (player.status === 'unsold') playerCard.classList.add('unsold');
-                
-                playerCard.innerHTML = `<div class="player-card-id">${player.id}</div><div class="player-card-name">${player.name}</div><div class="player-card-position">${player.position}</div>`;
-                playerGrid.appendChild(playerCard);
-            });
-        } else {
-            playerGrid.innerHTML = '<p class="empty-message">No players found.</p>';
-        }
+        liveAuctionState.players.forEach(player => {
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card';
+            playerCard.dataset.playerId = player.dbId;
+            if (player.status) playerCard.classList.add(player.status);
+            playerCard.innerHTML = `<div class="player-card-id">${player.id}</div><div class="player-card-name">${player.name}</div><div class="player-card-position">${player.position}</div>`;
+            playerGrid.appendChild(playerCard);
+        });
     }
 
     function renderTeams() {
         teamsList.innerHTML = '';
-        if (liveAuctionState.teams.length > 0) {
-            liveAuctionState.teams.forEach(team => {
-                const teamItem = document.createElement('div');
-                teamItem.className = 'team-list-item';
-                teamItem.dataset.teamId = team.id;
-                
-                const budget = parseFloat(liveAuctionState.auction.budget);
-                const captainValue = parseFloat(team.captainValue);
-                let spent = 0;
-                liveAuctionState.players.forEach(p => {
-                    if (p.owningTeamId === team.id) {
-                        spent += parseFloat(p.soldPrice);
-                    }
-                });
-                const balance = budget - captainValue - spent;
-                const playerCount = liveAuctionState.players.filter(p => p.owningTeamId === team.id).length;
-
-                teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${new Intl.NumberFormat().format(balance)}</span></div><div class="team-player-count">${playerCount + 1} Players</div>`;
-                teamsList.appendChild(teamItem);
+        liveAuctionState.teams.forEach(team => {
+            const teamItem = document.createElement('div');
+            teamItem.className = 'team-list-item';
+            teamItem.dataset.teamId = team.id;
+            let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
+            let playerCount = 1;
+            liveAuctionState.players.forEach(p => {
+                if (p.status === 'sold' && p.owningTeamId === team.id) {
+                    balance -= parseFloat(p.soldPrice);
+                    playerCount++;
+                }
             });
-        } else {
-            teamsList.innerHTML = '<p class="empty-message">No teams found.</p>';
-        }
-    }
-
-    function resetPlayerDetailsPanel() {
-        liveAuctionState.selectedPlayer = null;
-        liveAuctionState.currentBid = 0;
-        liveAuctionState.biddingTeamId = null;
-        liveAuctionState.biddingTeamName = null;
-        playerDetailsPanel.innerHTML = '<p class="empty-message">Select a player to auction</p>';
-        document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
-        document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
-
-        // Broadcast the reset state
-        socket.emit('adminAction', {
-            selectedPlayer: null,
-            currentBid: 0,
-            biddingTeamName: null
+            teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${new Intl.NumberFormat().format(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
+            teamsList.appendChild(teamItem);
         });
     }
 
+    function resetPlayerDetailsPanel(broadcastReset = true) {
+        liveAuctionState.selectedPlayer = null;
+        liveAuctionState.currentBid = 0;
+        liveAuctionState.biddingTeamId = null;
+        playerDetailsPanel.innerHTML = '<p class="empty-message">Select a player to auction</p>';
+        document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
+        document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
+        if (broadcastReset) {
+            socket.emit('adminAction', { status: 'idle' });
+        }
+    }
+
     function updatePlayerDetailsPanel() {
-        if (!liveAuctionState.selectedPlayer) {
-            resetPlayerDetailsPanel();
+        const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
+        if (!selectedPlayer) {
+            resetPlayerDetailsPanel(true);
             return;
         }
-
-        const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
         
-        // FIX #2: Always clear existing bidding class before processing the new state
-        document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
-
         let biddingTeamName = '--';
+        document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
         if (biddingTeamId) {
             const team = liveAuctionState.teams.find(t => t.id === biddingTeamId);
             if (team) {
                 biddingTeamName = team.name;
-                liveAuctionState.biddingTeamName = team.name; // Store name in state
                 const teamElement = teamsList.querySelector(`[data-team-id="${biddingTeamId}"]`);
                 if (teamElement) teamElement.classList.add('bidding');
             }
-        } else {
-             liveAuctionState.biddingTeamName = null;
         }
 
         playerDetailsPanel.innerHTML = `
             <div class="current-player-details">
                 <h3 class="current-player-name">${selectedPlayer.name}</h3>
                 <p class="current-player-info">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
-                <div class="current-player-price-info">
-                    <span>Base Price</span>
-                    <span class="price-value">${new Intl.NumberFormat().format(selectedPlayer.basePrice)}</span>
-                </div>
-                 <div class="current-player-price-info current-bid">
-                    <span>Current Bid</span>
-                    <span class="price-value">${new Intl.NumberFormat().format(currentBid)}</span>
-                </div>
-                <div class="current-player-price-info">
-                    <span>By</span>
-                    <span class="price-value bidding-team-name">${biddingTeamName}</span>
-                </div>
-                <p class="current-player-merits">${selectedPlayer.merits || ''}</p>
+                <div class="current-player-price-info"><span>Base Price</span><span class="price-value">${new Intl.NumberFormat().format(selectedPlayer.basePrice)}</span></div>
+                <div class="current-player-price-info current-bid"><span>Current Bid</span><span class="price-value">${new Intl.NumberFormat().format(currentBid)}</span></div>
+                <div class="current-player-price-info"><span>By</span><span class="price-value bidding-team-name">${biddingTeamName}</span></div>
             </div>
             <div class="current-player-actions">
-                <!-- FIX #1: Added id attributes to buttons -->
                 <button id="finalize-bid-btn" class="btn btn-primary" style="width: 100%;">Finalize Bid (Sell)</button>
                 <button id="mark-unsold-btn" class="btn btn-secondary" style="width: 100%;">Mark Unsold</button>
-            </div>
-        `;
-
-        // Broadcast the updated state
+            </div>`;
+        
         socket.emit('adminAction', {
-            selectedPlayer: liveAuctionState.selectedPlayer,
-            currentBid: liveAuctionState.currentBid,
-            biddingTeamName: liveAuctionState.biddingTeamName
+            status: 'bidding',
+            selectedPlayer,
+            currentBid,
+            biddingTeamName
         });
     }
 
     // --- Event Listeners ---
-    playerGrid.addEventListener('click', async (event) => {
+    playerGrid.addEventListener('click', (event) => {
         const selectedCard = event.target.closest('.player-card');
-        if (!selectedCard || selectedCard.classList.contains('sold')) return; // Ignore clicks on sold players
+        if (!selectedCard || selectedCard.classList.contains('sold')) return;
 
         const playerId = selectedCard.dataset.playerId;
+        const player = liveAuctionState.players.find(p => p.dbId === playerId);
+        if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === player.dbId) return; // Don't re-select same player
+        
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         selectedCard.classList.add('selected');
 
-        try {
-            const playerRes = await fetch(`/api/auctions/${auctionId}/players/${playerId}`);
-            liveAuctionState.selectedPlayer = await playerRes.json();
-            liveAuctionState.currentBid = parseFloat(liveAuctionState.selectedPlayer.basePrice);
-            liveAuctionState.biddingTeamId = null; // Reset bidding team on new player selection
-            updatePlayerDetailsPanel();
-        } catch(err) {
-            console.error("Could not fetch player details", err);
-        }
+        liveAuctionState.selectedPlayer = player;
+        liveAuctionState.currentBid = parseFloat(player.basePrice) || 0;
+        liveAuctionState.biddingTeamId = null;
+        updatePlayerDetailsPanel();
     });
 
     teamsList.addEventListener('click', (event) => {
@@ -197,7 +154,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!selectedTeam || !liveAuctionState.selectedPlayer) return;
 
         const teamId = selectedTeam.dataset.teamId;
-        
         let nextBid = liveAuctionState.currentBid;
         const bidIncrements = liveAuctionState.auction.bidIncrements || [];
         let increment = 25000;
@@ -205,15 +161,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const tier of bidIncrements) {
             const from = parseFloat(tier.from);
             const to = parseFloat(tier.to);
-            if (nextBid >= from && nextBid < to) {
+            if (nextBid >= from && (!to || nextBid < to)) {
                 increment = parseFloat(tier.increment);
                 break;
             }
         }
-        if (bidIncrements.length > 0 && nextBid >= parseFloat(bidIncrements[bidIncrements.length - 1].to)) {
+        if (bidIncrements.length > 0 && bidIncrements[bidIncrements.length-1].to && nextBid >= parseFloat(bidIncrements[bidIncrements.length - 1].to)) {
              increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
         }
-
         nextBid += increment;
 
         liveAuctionState.currentBid = nextBid;
@@ -224,52 +179,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     playerDetailsPanel.addEventListener('click', async (event) => {
         const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
 
-        if (event.target.id === 'finalize-bid-btn') {
-            if (!selectedPlayer || !biddingTeamId) {
-                alert('A player must be selected and a team must have placed a bid to finalize.');
-                return;
-            }
-            try {
-                const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/sell`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ owningTeamId: biddingTeamId, soldPrice: currentBid }),
-                });
-                if (!response.ok) throw new Error('Failed to sell player');
-                
-                alert(`${selectedPlayer.name} sold successfully!`);
-                initializePanel();
+        if (event.target.id === 'mark-unsold-btn') {
+            if (!selectedPlayer) return;
+            if (confirm(`Are you sure you want to mark ${selectedPlayer.name} as unsold?`)) {
+                try {
+                    const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'unsold' }),
+                    });
+                    if (!response.ok) throw new Error('Server update failed');
 
-            } catch (error) {
-                console.error('Error selling player:', error);
-                alert('Error selling player.');
+                    socket.emit('adminAction', { status: 'unsold', selectedPlayer });
+                    
+                    const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
+                    if (playerIndex !== -1) liveAuctionState.players[playerIndex].status = 'unsold';
+                    
+                    renderPlayers();
+                    resetPlayerDetailsPanel(false);
+                    alert(`${selectedPlayer.name} has been marked as unsold.`);
+                } catch (error) {
+                    console.error('Error marking player unsold:', error);
+                    alert('An error occurred.');
+                }
             }
         }
 
-        if (event.target.id === 'mark-unsold-btn') {
-            if (!selectedPlayer) {
-                alert('Please select a player first.');
-                return;
-            }
-             try {
-                const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/status`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'unsold' }),
-                });
-                if (!response.ok) throw new Error('Failed to mark player as unsold');
-                
-                alert(`${selectedPlayer.name} marked as unsold.`);
-                initializePanel();
+        if (event.target.id === 'finalize-bid-btn') {
+            if (!selectedPlayer || !biddingTeamId) return alert('A player must be selected and a team must be bidding.');
+            
+            const winningTeam = liveAuctionState.teams.find(t => t.id === biddingTeamId);
+            if (!winningTeam) return alert('Error: Bidding team not found.');
 
-            } catch (error) {
-                console.error('Error marking player unsold:', error);
-                alert('Error marking player as unsold.');
+            if (confirm(`Sell ${selectedPlayer.name} to ${winningTeam.name} for ${new Intl.NumberFormat().format(currentBid)}?`)) {
+                try {
+                    const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/sell`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ soldPrice: currentBid, owningTeamId: biddingTeamId }),
+                    });
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.message || 'Server rejected the sale.');
+                    }
+
+                    // 1. Broadcast the FINAL 'sold' state
+                    socket.emit('adminAction', {
+                        status: 'sold',
+                        selectedPlayer: selectedPlayer,
+                        currentBid: currentBid,
+                        winningTeamName: winningTeam.name,
+                    });
+
+                    // 2. Update local data
+                    const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
+                    if (playerIndex !== -1) {
+                        liveAuctionState.players[playerIndex].status = 'sold';
+                        liveAuctionState.players[playerIndex].soldPrice = currentBid;
+                        liveAuctionState.players[playerIndex].owningTeamId = biddingTeamId;
+                    }
+
+                    // 3. Update local UI
+                    renderPlayers();
+                    renderTeams();
+                    
+                    // 4. Reset the details panel LOCALLY ONLY
+                    resetPlayerDetailsPanel(false);
+                    
+                    alert(`${selectedPlayer.name} sold successfully!`);
+
+                } catch (error) {
+                    console.error('Error selling player:', error);
+                    alert(`An error occurred: ${error.message}`);
+                }
             }
         }
     });
-
-    // --- Initial Load ---
+    
     initializePanel();
 });
 

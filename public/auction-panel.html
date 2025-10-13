@@ -16,48 +16,46 @@
             <div class="header-right">
                 <a href="#" id="manage-players-link" class="btn btn-secondary">Manage Players</a>
                 <a href="#" id="manage-teams-link" class="btn btn-secondary">Manage Teams</a>
-                <!-- Changed to a link with an ID -->
                 <a href="#" id="edit-auction-link" class="btn btn-secondary">Edit Auction</a>
-                <!-- Added an ID -->
                 <button id="close-auction-btn" class="btn btn-danger">Close Auction</button>
             </div>
         </header>
 
+        <!-- THE FIX: The footer is now the last child of this flex container -->
         <div class="panel-body">
-            <div class="player-pool-container">
+            <!-- Full-width top section for the player pool -->
+            <div class="player-pool-section">
                 <div class="card">
                     <h2>Player Pool</h2>
-                    <!-- Add filters here later -->
+                    <!-- Filters will go here -->
                 </div>
-                <!-- Add id to this container -->
-                <div id="player-grid-container" class="card player-grid" style="flex-grow: 1;">
+                <div id="player-grid-container" class="card player-grid">
                     <p>Players will be shown here...</p>
                 </div>
             </div>
-            <div class="auction-details-container">
-                <!-- Add id to this container -->
+
+            <!-- Wrapper for the two bottom columns -->
+            <div class="bottom-panels-wrapper">
                 <div id="player-details-panel" class="card player-details-panel">
                      <p>Select a player to auction</p>
                 </div>
                 <div class="card teams-panel">
                      <h2>Teams</h2>
-                     <!-- Add id to this container -->
                      <div id="teams-list-container">
                         <!-- Teams will be loaded here -->
                      </div>
                 </div>
             </div>
-        </div>
 
-        <footer class="card panel-footer">
-            <button class="btn btn-primary">Open Presentation Mode</button>
-            <label class="filter-checkbox"><input type="checkbox"> Show Team Balance</label>
-        </footer>
+            <footer class="card panel-footer">
+                <button class="btn btn-primary">Open Presentation Mode</button>
+                <label class="filter-checkbox"><input type="checkbox"> Show Team Balance</label>
+            </footer>
+        </div>
     </div>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="/auction-panel.js"></script>
 </body>
 </html>
-
-
 
