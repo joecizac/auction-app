@@ -188,18 +188,22 @@ app.delete('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
         } else res.status(404).json({ message: 'Team not found' });
     } else res.status(404).json({ message: 'Auction or teams not found' });
 });
+
 // Players
 app.delete('/api/auctions/:auctionId/players', async (req, res) => {
     const { playerIds } = req.body;
     if (!playerIds || !Array.isArray(playerIds)) {
         return res.status(400).json({ message: 'Invalid request: playerIds must be an array.' });
     }
+
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+
     if (auction && auction.players) {
+        // Filter out the players that need to be deleted
         auction.players = auction.players.filter(p => !playerIds.includes(p.dbId));
         await db.write();
-        res.status(204).send();
+        res.status(204).send(); // Success with no content
     } else {
         res.status(404).json({ message: 'Auction or players not found' });
     }

@@ -14,41 +14,37 @@
                  <h1 id="auction-title-heading">Manage Players</h1>
             </div>
             <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                <!-- NEW: The "Delete Selected" button, hidden by default -->
+                <button id="delete-selected-btn" class="btn btn-danger" style="display: none;">Delete Selected</button>
                 <a href="#" id="add-player-link" class="btn btn-primary">Add Player</a>
-                <!-- Add id to button -->
                 <button id="upload-csv-btn" class="btn btn-secondary">Upload CSV</button>
             </div>
         </header>
 
-        <!-- NEW: Hidden file input for the CSV upload -->
         <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
 
         <div class="card">
-            <!-- Player Filters -->
             <div class="form-row" style="padding-bottom: 24px; border-bottom: 1px solid var(--medium-gray); margin-bottom: 24px;">
                 <div class="form-group" style="flex:1;">
-                    <select id="filter-division"><option>All Divisions</option></select>
+                    <select id="filter-division"><option value="">All Divisions</option></select>
                 </div>
                 <div class="form-group" style="flex:1;">
-                    <select id="filter-position"><option>All Positions</option></select>
+                    <select id="filter-position"><option value="">All Positions</option></select>
                 </div>
                 <div class="form-group" style="flex:1;">
-                    <select id="filter-experience"><option>All Experience</option></select>
+                    <select id="filter-experience"><option value="">All Experience</option></select>
                 </div>
                  <div class="form-group" style="flex:2;">
                     <input type="text" id="search-player" placeholder="Search by name or ID...">
                 </div>
             </div>
 
-            <!-- Player List -->
             <div id="player-list-container">
                 <p>No players added to this auction yet.</p>
             </div>
         </div>
     </div>
-    <!-- Link to the new script -->
     <script src="/manage-players.js"></script>
 </body>
 </html>
-
 

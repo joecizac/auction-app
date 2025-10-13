@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- State Management ---
     let allPlayers = []; // This will hold the master list of players
+    let selectedPlayerIds = new Set(); // Use a Set for efficient tracking of selected players
 
     // --- Element References ---
     const auctionTitleHeading = document.getElementById('auction-title-heading');
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uploadCsvBtn = document.getElementById('upload-csv-btn');
     const csvFileInput = document.getElementById('csv-file-input');
     const playerListContainer = document.getElementById('player-list-container');
+    const deleteSelectedBtn = document.getElementById('delete-selected-btn');
     const filterPosition = document.getElementById('filter-position');
     const filterDivision = document.getElementById('filter-division');
     const filterExperience = document.getElementById('filter-experience');
@@ -104,36 +106,113 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const tableBody = playersToRender.map(player => `
-            <tr onclick="window.location.href='/admin/auction/${auctionId}/players/${player.dbId}/edit'" style="cursor: pointer;">
-                <td><span class="player-id-badge">${player.id}</span></td>
-                <td>${player.name}</td>
-                <td>${player.position}</td>
-                <td>${player.division}</td>
-                <td>${player.experience}</td>
-                <td>${new Intl.NumberFormat().format(player.basePrice)}</td>
-            </tr>
-        `).join('');
-
-        playerListContainer.innerHTML = `
-            <table class="player-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Division</th>
-                        <th>Experience</th>
-                        <th>Base Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableBody}
-                </tbody>
-            </table>
+        // Add checkboxes to the table header and rows
+        const tableHeader = `
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all-checkbox"></th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Division</th>
+                    <th>Experience</th>
+                    <th>Base Price</th>
+                </tr>
+            </thead>
         `;
+
+        const tableBody = playersToRender.map(player => {
+            const isChecked = selectedPlayerIds.has(player.dbId);
+            return `
+                <tr data-player-id="${player.dbId}">
+                    <td><input type="checkbox" class="player-checkbox" data-player-id="${player.dbId}" ${isChecked ? 'checked' : ''}></td>
+                    <td><span class="player-id-badge">${player.id}</span></td>
+                    <td>${player.name}</td>
+                    <td>${player.position}</td>
+                    <td>${player.division}</td>
+                    <td>${player.experience}</td>
+                    <td>${new Intl.NumberFormat().format(player.basePrice)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        playerListContainer.innerHTML = `<table class="player-table">${tableHeader}<tbody>${tableBody}</tbody></table>`;
     }
 
+    function updateDeleteButtonVisibility() {
+        if (selectedPlayerIds.size > 0) {
+            deleteSelectedBtn.style.display = 'inline-block';
+            deleteSelectedBtn.textContent = `Delete Selected (${selectedPlayerIds.size})`;
+        } else {
+            deleteSelectedBtn.style.display = 'none';
+        }
+    }
+
+    playerListContainer.addEventListener('click', (event) => {
+        // Handle row clicks for navigation (but not on the checkbox)
+        if (event.target.tagName !== 'INPUT' && event.target.closest('tr')) {
+            const playerId = event.target.closest('tr').dataset.playerId;
+            window.location.href = `/admin/auction/${auctionId}/players/${playerId}/edit`;
+            return;
+        }
+
+        // Handle "Select All" checkbox
+        if (event.target.id === 'select-all-checkbox') {
+            const isChecked = event.target.checked;
+            const allVisibleCheckboxes = playerListContainer.querySelectorAll('.player-checkbox');
+            allVisibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+                const playerId = checkbox.dataset.playerId;
+                if (isChecked) {
+                    selectedPlayerIds.add(playerId);
+                } else {
+                    selectedPlayerIds.delete(playerId);
+                }
+            });
+            updateDeleteButtonVisibility();
+            return;
+        }
+
+        // Handle individual player checkbox
+        if (event.target.classList.contains('player-checkbox')) {
+            const playerId = event.target.dataset.playerId;
+            if (event.target.checked) {
+                selectedPlayerIds.add(playerId);
+            } else {
+                selectedPlayerIds.delete(playerId);
+            }
+            updateDeleteButtonVisibility();
+        }
+    });
+
+    deleteSelectedBtn.addEventListener('click', async () => {
+        if (selectedPlayerIds.size === 0) return;
+
+        if (confirm(`Are you sure you want to delete ${selectedPlayerIds.size} selected players? This action cannot be undone.`)) {
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/players`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerIds: Array.from(selectedPlayerIds) }),
+                });
+
+                if (!response.ok) throw new Error('Failed to delete players.');
+
+                // Refresh data from the server
+                const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
+                allPlayers = await playersRes.json();
+                selectedPlayerIds.clear();
+                applyFiltersAndRenderPlayers();
+                updateDeleteButtonVisibility();
+                alert('Selected players deleted successfully.');
+
+            } catch (error) {
+                console.error('Error deleting players:', error);
+                alert('An error occurred while deleting players.');
+            }
+        }
+    });
+    
     uploadCsvBtn.addEventListener('click', () => {
         csvFileInput.click(); // Open the file selection dialog
     });
