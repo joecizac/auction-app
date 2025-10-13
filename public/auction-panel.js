@@ -3,6 +3,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 1];
 
+    // Listen for bids coming from team interfaces
+    socket.on('teamBidAction', (data) => {
+        // Find the team element and simulate a click
+        const teamElement = teamsList.querySelector(`[data-team-id="${data.teamId}"]`);
+        if (teamElement && !teamElement.classList.contains('disabled')) {
+            teamElement.click();
+        }
+    });
+
     // State Management
     let liveAuctionState = {
         auction: null,

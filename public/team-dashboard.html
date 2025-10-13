@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Bidding - Sports Auction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1 id="team-name-heading">Team Name</h1>
+            <div class="team-header-info">
+                <span>Balance: <strong id="team-balance" class="balance">0</strong></span>
+                <span>Players: <strong id="team-player-count">0</strong></span>
+            </div>
+        </header>
+
+        <div id="bidding-area" class="card" style="text-align: center;">
+            <h2>Waiting for next player...</h2>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/team-dashboard.js"></script>
+</body>
+</html>

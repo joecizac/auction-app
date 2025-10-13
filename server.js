@@ -71,6 +71,7 @@ app.post('/login', (req, res) => {
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/admin/create-auction', (req, res) => res.sendFile(path.join(__dirname, 'public', 'create-auction.html')));
 app.get('/admin/auction/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'auction-panel.html')));
+app.get('/admin/auction/:auctionId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'create-auction.html')));
 app.get('/admin/auction/:auctionId/teams', (req, res) => res.sendFile(path.join(__dirname, 'public', 'manage-teams.html')));
 app.get('/admin/auction/:auctionId/teams/new', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-form.html')));
 app.get('/admin/auction/:auctionId/teams/:teamId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-form.html')));
@@ -79,8 +80,9 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => res.sendFile(path
 app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
 app.get('/presenter/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'presenter.html')));
 app.get('/team-dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-dashboard.html')));
-app.get('/admin/auction/:auctionId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'create-auction.html')));
-
+app.get('/team-bidding', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'team-bidding.html'));
+});
 
 // API Routes
 // Auctions
@@ -350,6 +352,13 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => { console.log('User disconnected'); });
     socket.on('adminAction', (state) => {
         socket.broadcast.emit('auctionUpdate', state);
+    });
+    
+    // Listen for bids FROM a team client
+    socket.on('teamBid', (data) => {
+        // Broadcast this bid event to the admin panel
+        console.log(`Received bid from team ${data.teamId}`);
+        io.emit('teamBidAction', data);
     });
 });
 

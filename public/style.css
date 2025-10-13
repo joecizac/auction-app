@@ -392,3 +392,61 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .result-team-name { font-size: 96px; font-weight: 700; color: var(--primary-color); margin-bottom: 24px; }
 .result-final-price { font-size: 80px; font-weight: 600; color: #fff; }
 
+/* Team Bidding Interface */
+.team-header-info {
+    display: flex;
+    gap: 24px;
+    font-size: 18px;
+}
+.team-header-info strong {
+    font-weight: 700;
+}
+.team-header-info .balance {
+    color: #28a745;
+}
+
+#bidding-area .player-name {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+#bidding-area .player-details {
+    font-size: 24px;
+    color: var(--secondary-color);
+    margin-bottom: 24px;
+}
+
+#bidding-area .bid-info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--light-gray);
+    padding: 24px;
+    border-radius: var(--border-radius);
+    margin-bottom: 32px;
+}
+
+#bidding-area .bid-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+#bidding-area .bid-info-label {
+    font-size: 18px;
+    color: var(--secondary-color);
+}
+
+#bidding-area .bid-info-value {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+#bid-btn {
+    padding: 20px 40px;
+    font-size: 24px;
+    width: 100%;
+}
+#bid-btn:disabled {
+    background-color: var(--secondary-color);
+    cursor: not-allowed;
+}
