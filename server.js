@@ -80,9 +80,7 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => res.sendFile(path
 app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
 app.get('/presenter/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'presenter.html')));
 app.get('/team-dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-dashboard.html')));
-app.get('/team-bidding', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'team-bidding.html'));
-});
+
 
 // API Routes
 // Auctions
@@ -189,6 +187,24 @@ app.delete('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
             res.status(204).send();
         } else res.status(404).json({ message: 'Team not found' });
     } else res.status(404).json({ message: 'Auction or teams not found' });
+});
+app.delete('/api/auctions/:auctionId/teams/:teamId/players/:playerId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
+        if (playerIndex !== -1) {
+            auction.players[playerIndex].status = 'unsold';
+            delete auction.players[playerIndex].soldPrice;
+            delete auction.players[playerIndex].owningTeamId;
+            await db.write();
+            res.status(204).send();
+        } else {
+            res.status(404).json({ message: 'Player not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
+    }
 });
 
 // Players
@@ -353,7 +369,7 @@ io.on('connection', (socket) => {
     socket.on('adminAction', (state) => {
         socket.broadcast.emit('auctionUpdate', state);
     });
-    
+
     // Listen for bids FROM a team client
     socket.on('teamBid', (data) => {
         // Broadcast this bid event to the admin panel

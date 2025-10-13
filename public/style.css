@@ -450,6 +450,32 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .bid-amount { font-size: 128px; font-weight: 700; color: #28a745; margin: 24px 0; }
 .bidding-team-name { font-size: 64px; font-weight: 600; color: var(--primary-color); }
 
+/* Player List in Team Form */
+.team-player-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--medium-gray);
+}
+.team-player-list-item:last-child {
+    border-bottom: none;
+}
+
+.team-player-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.team-player-info .player-name {
+    font-weight: 600;
+}
+
+.team-player-info .player-price {
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
 /* Result View (one large card) for Sold/Unsold */
 .result-card {
     background-color: rgba(255, 255, 255, 0.05);
