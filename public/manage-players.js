@@ -150,9 +150,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     playerListContainer.addEventListener('click', (event) => {
         // Handle row clicks for navigation (but not on the checkbox)
-        if (event.target.tagName !== 'INPUT' && event.target.closest('tr')) {
-            const playerId = event.target.closest('tr').dataset.playerId;
-            window.location.href = `/admin/auction/${auctionId}/players/${playerId}/edit`;
+        const clickedRow = event.target.closest('tr');
+
+        // THE FIX: Only navigate if the click is on a row inside the TBODY
+        // and not on an input element itself.
+        if (event.target.tagName !== 'INPUT' && clickedRow && clickedRow.parentElement.tagName === 'TBODY') {
+            const playerId = clickedRow.dataset.playerId;
+            if (playerId) {
+                window.location.href = `/admin/auction/${auctionId}/players/${playerId}/edit`;
+            }
             return;
         }
 
@@ -212,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
-    
+
     uploadCsvBtn.addEventListener('click', () => {
         csvFileInput.click(); // Open the file selection dialog
     });
