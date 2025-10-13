@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const teamsList = document.getElementById('teams-list-container');
     const playerDetailsPanel = document.getElementById('player-details-panel');
     const auctionTitleHeading = document.getElementById('auction-title-heading');
+    const filterPosition = document.getElementById('filter-position');
+    const filterDivision = document.getElementById('filter-division');
+    const filterSearch = document.getElementById('filter-search');
+    const excludeSoldCheckbox = document.getElementById('exclude-sold');
 
     if (!auctionId || !auctionId.startsWith('auc_')) {
         auctionTitleHeading.textContent = 'Invalid Auction';
@@ -39,8 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('manage-teams-link').href = `/admin/auction/${auctionId}/teams`;
             document.getElementById('edit-auction-link').href = `/admin/auction/${auctionId}/edit`;
             
-            renderPlayers();
+            populateFilters();
+            addFilterListeners();
             renderTeams();
+            applyFiltersAndRenderPlayers();
             resetPlayerDetailsPanel(false); 
 
         } catch (error) {
@@ -49,16 +55,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function renderPlayers() {
-        playerGrid.innerHTML = '';
-        liveAuctionState.players.forEach(player => {
-            const playerCard = document.createElement('div');
-            playerCard.className = 'player-card';
-            playerCard.dataset.playerId = player.dbId;
-            if (player.status) playerCard.classList.add(player.status);
-            playerCard.innerHTML = `<div class="player-card-id">${player.id}</div><div class="player-card-name">${player.name}</div><div class="player-card-position">${player.position}</div>`;
-            playerGrid.appendChild(playerCard);
+    function populateFilters() {
+        // Populate positions
+        const sportPositions = { football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'], cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder'] };
+        const positions = sportPositions[liveAuctionState.auction.sport] || [];
+        positions.forEach(pos => {
+            filterPosition.innerHTML += `<option value="${pos}">${pos}</option>`;
         });
+
+        // Populate divisions
+        const divisionLabels = { senior_men: 'Senior(Men)', senior_women: 'Senior(Women)', youth_men: 'Youth(Men)', youth_women: 'Youth(Women)', junior_boys: 'Junior(Boys)', junior_girls: 'Junior(Girls)' };
+        (liveAuctionState.auction.allowedDivisions || []).forEach(divValue => {
+            filterDivision.innerHTML += `<option value="${divValue}">${divisionLabels[divValue] || divValue}</option>`;
+        });
+    }
+
+    function addFilterListeners() {
+        filterPosition.addEventListener('change', applyFiltersAndRenderPlayers);
+        filterDivision.addEventListener('change', applyFiltersAndRenderPlayers);
+        filterSearch.addEventListener('input', applyFiltersAndRenderPlayers);
+        excludeSoldCheckbox.addEventListener('change', applyFiltersAndRenderPlayers);
+    }
+
+    function applyFiltersAndRenderPlayers() {
+        const posFilter = filterPosition.value;
+        const divFilter = filterDivision.value;
+        const searchFilter = filterSearch.value.toLowerCase();
+        const excludeSold = excludeSoldCheckbox.checked;
+
+        const filteredPlayers = liveAuctionState.players.filter(player => {
+            if (excludeSold && player.status === 'sold') return false;
+            if (posFilter && player.position !== posFilter) return false;
+            if (divFilter && player.division !== divFilter) return false;
+            if (searchFilter && !player.name.toLowerCase().includes(searchFilter) && !player.id.toLowerCase().includes(searchFilter)) return false;
+            return true;
+        });
+        renderPlayers(filteredPlayers);
+    }
+
+    function renderPlayers(playersToRender) {
+        playerGrid.innerHTML = '';
+        if (playersToRender.length > 0) {
+            playersToRender.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                playerCard.dataset.playerId = player.dbId;
+                if (player.status) playerCard.classList.add(player.status);
+                // Highlight if selected
+                if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === player.dbId) {
+                    playerCard.classList.add('selected');
+                }
+                playerCard.innerHTML = `<div class="player-card-id">${player.id}</div><div class="player-card-name">${player.name}</div><div class="player-card-position">${player.position}</div>`;
+                playerGrid.appendChild(playerCard);
+            });
+        } else {
+            playerGrid.innerHTML = '<p class="empty-message">No players match the current filters.</p>';
+        }
     }
 
     function renderTeams() {

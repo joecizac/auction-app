@@ -21,20 +21,27 @@
             </div>
         </header>
 
-        <!-- THE FIX: The footer is now the last child of this flex container -->
         <div class="panel-body">
-            <!-- Full-width top section for the player pool -->
             <div class="player-pool-section">
                 <div class="card">
-                    <h2>Player Pool</h2>
-                    <!-- Filters will go here -->
+                    <div class="player-pool-header">
+                        <h2>Player Pool</h2>
+                        <!-- THE FIX: Adding the filter controls -->
+                        <div class="player-pool-filters">
+                            <select id="filter-position"><option value="">All Positions</option></select>
+                            <select id="filter-division"><option value="">All Divisions</option></select>
+                            <input type="text" id="filter-search" placeholder="Search name or ID...">
+                            <div class="filter-checkboxes">
+                                <label><input type="checkbox" id="exclude-sold"> Exclude Sold</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="player-grid-container" class="card player-grid">
                     <p>Players will be shown here...</p>
                 </div>
             </div>
 
-            <!-- Wrapper for the two bottom columns -->
             <div class="bottom-panels-wrapper">
                 <div id="player-details-panel" class="card player-details-panel">
                      <p>Select a player to auction</p>
