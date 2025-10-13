@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    let teamData = null; // Store our team's full data
+    let teamData = null;
+    let auctionData = null;
 
     // Initial data load
     async function initializeDashboard() {
@@ -25,10 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             teamData = data.team;
-            const { auction, players } = data;
+            auctionData = data.auction;
+            const { players } = data;
 
             teamNameHeading.textContent = teamData.name;
-            updateTeamStats(auction, players);
+            updateTeamStats(auctionData, players);
         } catch (error) {
             console.error('Failed to load dashboard:', error);
             teamNameHeading.textContent = 'Error loading data.';
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalBudget = parseFloat(auction.budget);
         const captainValue = parseFloat(teamData.captainValue);
         let amountSpent = captainValue;
-        let playerCount = 1; // For the captain
+        let playerCount = 1;
 
         players.forEach(p => {
             amountSpent += parseFloat(p.soldPrice);
@@ -53,18 +55,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for live auction updates from the server
     socket.on('auctionUpdate', (state) => {
-        if (!teamData) return; // Don't render until we know who we are
+        if (!teamData || !auctionData) return;
 
-        if (state.status === 'bidding') {
-            renderBiddingView(state);
-        } else if (state.status === 'sold') {
-            renderSoldView(state);
-            // If we won the player, refetch our stats
-            if (state.winningTeamName === teamData.name) {
-                initializeDashboard();
-            }
-        } else {
-            renderIdleView();
+        // THE FIX: Use a switch statement to handle all states correctly
+        switch (state.status) {
+            case 'bidding':
+                renderBiddingView(state);
+                break;
+            case 'sold':
+                renderSoldView(state);
+                if (state.winningTeamName === teamData.name) {
+                    initializeDashboard();
+                }
+                break;
+            case 'unsold':
+                renderUnsoldView(state);
+                break;
+            default:
+                renderIdleView();
+                break;
         }
     });
 
@@ -74,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderBiddingView(state) {
         const { selectedPlayer, currentBid, biddingTeamName } = state;
-        const nextBid = calculateNextBid(currentBid, biddingTeamName === '--');
+        const isFirstBid = biddingTeamName === '--';
+        const nextBid = calculateNextBid(currentBid, isFirstBid);
         const myBalance = parseFloat(teamBalanceEl.textContent.replace(/,/g, ''));
         
         const isMyBid = biddingTeamName === teamData.name;
@@ -110,19 +120,42 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // --- Action: Send a bid to the server ---
+    // --- NEW: Function to render the unsold state ---
+    function renderUnsoldView(state) {
+        biddingArea.innerHTML = `
+            <h2>${state.selectedPlayer.name} went UNSOLD</h2>
+            <p>This player may be re-nominated later in the auction.</p>
+        `;
+    }
+
     biddingArea.addEventListener('click', (event) => {
         if (event.target.id === 'bid-btn' && !event.target.disabled) {
             socket.emit('teamBid', { auctionId, teamId });
         }
     });
     
-    // --- Helper function (must be kept in sync with admin panel) ---
     function calculateNextBid(currentBid, isFirstBid) {
-        // This is simplified and assumes a default increment. A real app would get this from auction data.
-        if (isFirstBid) return currentBid;
-        return currentBid + 25000;
+        if (isFirstBid) {
+            return currentBid;
+        }
+        let nextBid = currentBid;
+        const bidIncrements = auctionData.bidIncrements || [];
+        let increment = 25000;
+        
+        for (const tier of bidIncrements) {
+            const from = parseFloat(tier.from);
+            const to = parseFloat(tier.to) || Infinity;
+            if (nextBid >= from && nextBid < to) {
+                increment = parseFloat(tier.increment);
+                break;
+            }
+        }
+        if (bidIncrements.length > 0 && nextBid >= (parseFloat(bidIncrements[bidIncrements.length - 1].to) || 0)) {
+            increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
+        }
+        return nextBid + increment;
     }
 
     initializeDashboard();
 });
+

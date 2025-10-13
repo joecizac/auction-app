@@ -5,10 +5,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listen for bids coming from team interfaces
     socket.on('teamBidAction', (data) => {
-        // Find the team element and simulate a click
-        const teamElement = teamsList.querySelector(`[data-team-id="${data.teamId}"]`);
-        if (teamElement && !teamElement.classList.contains('disabled')) {
-            teamElement.click();
+        // Only process the bid if it's for the current auction
+        if (data.auctionId === auctionId) {
+            const teamElement = teamsList.querySelector(`[data-team-id="${data.teamId}"]`);
+            if (teamElement && !teamElement.classList.contains('disabled')) {
+                teamElement.click(); // Simulate the admin clicking on the team
+            }
         }
     });
 
