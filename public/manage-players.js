@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const auctionTitleHeading = document.getElementById('auction-title-heading');
     const backLink = document.getElementById('back-to-auction-link');
     const addPlayerLink = document.getElementById('add-player-link');
+    const uploadCsvBtn = document.getElementById('upload-csv-btn');
+    const csvFileInput = document.getElementById('csv-file-input');
     const playerListContainer = document.getElementById('player-list-container');
     const filterPosition = document.getElementById('filter-position');
     const filterDivision = document.getElementById('filter-division');
@@ -131,6 +133,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             </table>
         `;
     }
+
+    uploadCsvBtn.addEventListener('click', () => {
+        csvFileInput.click(); // Open the file selection dialog
+    });
+
+    csvFileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('playerCsv', file);
+
+        try {
+            uploadCsvBtn.textContent = 'Uploading...';
+            uploadCsvBtn.disabled = true;
+
+            const response = await fetch(`/api/auctions/${auctionId}/players/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || 'Upload failed');
+            }
+
+            const result = await response.json();
+            alert(result.message);
+            window.location.reload(); // Reload the page to see the new players
+
+        } catch (error) {
+            console.error('Error uploading CSV:', error);
+            alert(`Upload failed: ${error.message}`);
+        } finally {
+            uploadCsvBtn.textContent = 'Upload CSV';
+            uploadCsvBtn.disabled = false;
+            csvFileInput.value = ''; // Reset the file input
+        }
+    });
 
     // --- Initial Load ---
     initializePage();
