@@ -32,6 +32,24 @@ const initializeDatabase = async () => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- NEW: Reusable Helper Function for Player ID Generation ---
+const getNextPlayerIdForDivision = (players, divisionInitial, excludePlayerDbId = null) => {
+    let maxNumber = 0;
+    players.forEach(p => {
+        // When updating, we exclude the player being updated from the check
+        if (p.dbId === excludePlayerDbId) return;
+
+        if (p.id && p.id.startsWith(divisionInitial)) {
+            const numberPart = parseInt(p.id.substring(1), 10);
+            if (!isNaN(numberPart) && numberPart > maxNumber) {
+                maxNumber = numberPart;
+            }
+        }
+    });
+    return `${divisionInitial}${maxNumber + 1}`;
+};
+
+
 // Page Routes
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -70,7 +88,6 @@ app.get('/api/auctions', async (req, res) => { await db.read(); res.json(db.data
 app.post('/api/auctions', async (req, res) => {
     const auctionData = req.body;
     auctionData.id = `auc_${Date.now()}`;
-    // THE FIX: Add the creation date to every new auction
     auctionData.createdAt = new Date().toISOString();
     await db.read();
     if (!db.data.auctions) db.data.auctions = [];
@@ -201,8 +218,10 @@ app.post('/api/auctions/:auctionId/players', async (req, res) => {
     const newPlayer = req.body;
     newPlayer.dbId = `player_${Date.now()}`;
     const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
-    const playersInDivision = auction.players.filter(p => p.division === newPlayer.division).length;
-    newPlayer.id = `${divisionInitial}${playersInDivision + 1}`;
+    
+    // THE FIX: Using the new helper function
+    newPlayer.id = getNextPlayerIdForDivision(auction.players, divisionInitial);
+
     auction.players.push(newPlayer);
     await db.write();
     res.status(201).json(newPlayer);
@@ -219,8 +238,9 @@ app.post('/api/auctions/:auctionId/players/upload', upload.single('playerCsv'), 
         .on('data', (row) => {
             const newPlayer = { ...row, dbId: `player_${Date.now()}_${players.length}` };
             const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
-            const playersInDivision = (auction.players.filter(p => p.division === newPlayer.division).length) + (players.filter(p => p.division === newPlayer.division).length);
-            newPlayer.id = `${divisionInitial}${playersInDivision + 1}`;
+            
+            // THE FIX: Using the new helper function
+            newPlayer.id = getNextPlayerIdForDivision([...auction.players, ...players], divisionInitial);
             players.push(newPlayer);
         }).on('end', async () => {
             try {
@@ -248,11 +268,23 @@ app.put('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
         const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
         if (playerIndex !== -1) {
             const originalPlayer = auction.players[playerIndex];
-            auction.players[playerIndex] = { ...originalPlayer, ...req.body };
+            const updatedPlayerData = req.body;
+
+            if (updatedPlayerData.division && updatedPlayerData.division !== originalPlayer.division) {
+                const divisionInitial = updatedPlayerData.division.charAt(0).toUpperCase();
+                // THE FIX: Using the new helper function
+                updatedPlayerData.id = getNextPlayerIdForDivision(auction.players, divisionInitial, originalPlayer.dbId);
+            }
+
+            auction.players[playerIndex] = { ...originalPlayer, ...updatedPlayerData };
             await db.write();
             res.json(auction.players[playerIndex]);
-        } else res.status(404).json({ message: 'Player not found' });
-    } else res.status(404).json({ message: 'Auction or players not found' });
+        } else {
+            res.status(404).json({ message: 'Player not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
+    }
 });
 app.delete('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
     await db.read();
