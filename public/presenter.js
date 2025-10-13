@@ -27,13 +27,33 @@ document.addEventListener('DOMContentLoaded', () => {
         presenterContent.innerHTML = '<h1>Waiting for the next player...</h1>';
     }
 
+    function renderTeamList(teams, showBalance, players) {
+        if (!teams || teams.length === 0) return '';
+
+        let teamHtml = '<div class="presenter-teams-list"><h3>Teams</h3>';
+        teams.forEach(team => {
+            let balance = parseFloat(team.auctionBudget) - parseFloat(team.captainValue);
+            (players || []).forEach(p => {
+                if (p.status === 'sold' && p.owningTeamId === team.id) {
+                    balance -= parseFloat(p.soldPrice);
+                }
+            });
+
+            teamHtml += `
+                <div class="presenter-team-item">
+                    <span class="team-name">${team.name}</span>
+                    ${showBalance ? `<span class="team-balance">${new Intl.NumberFormat().format(balance)}</span>` : ''}
+                </div>
+            `;
+        });
+        teamHtml += '</div>';
+        return teamHtml;
+    }
+
     function renderBiddingView(state) {
-        if (!state.selectedPlayer || isNaN(state.currentBid)) {
-            renderIdleView();
-            return;
-        }
         presenterContent.className = 'presenter-active';
-        const { selectedPlayer, currentBid, biddingTeamName } = state;
+        const { selectedPlayer, currentBid, biddingTeamName, teams, showBalance, players } = state;
+
         presenterContent.innerHTML = `
             <div class="player-info-card">
                 <div class="player-name">${selectedPlayer.name}</div>
@@ -45,12 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="bidding-team-label">Bidding Team</div>
                 <div class="bidding-team-name">${biddingTeamName || '--'}</div>
             </div>
+            ${renderTeamList(teams, showBalance, players)}
         `;
     }
 
     function renderSoldView(state) {
         presenterContent.className = 'presenter-sold';
-        const { selectedPlayer, currentBid, winningTeamName } = state;
+        const { selectedPlayer, currentBid, winningTeamName, teams, showBalance, players } = state;
         presenterContent.innerHTML = `
             <div class="result-card">
                 <div class="result-player-name">${selectedPlayer.name}</div>
@@ -58,17 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="result-team-name">${winningTeamName}</div>
                 <div class="result-final-price">${new Intl.NumberFormat().format(currentBid)}</div>
             </div>
+            ${renderTeamList(teams, showBalance, players)}
         `;
     }
 
     function renderUnsoldView(state) {
         presenterContent.className = 'presenter-unsold';
-        const { selectedPlayer } = state;
+        const { selectedPlayer, teams, showBalance, players } = state;
         presenterContent.innerHTML = `
              <div class="result-card">
                 <div class="result-player-name">${selectedPlayer.name}</div>
                 <div class="result-status-unsold">UNSOLD</div>
             </div>
+            ${renderTeamList(teams, showBalance, players)}
         `;
     }
 });

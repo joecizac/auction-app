@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterDivision = document.getElementById('filter-division');
     const filterSearch = document.getElementById('filter-search');
     const excludeSoldCheckbox = document.getElementById('exclude-sold');
+    const openPresenterBtn = document.getElementById('open-presenter-btn');
+    const showBalanceCheckbox = document.getElementById('show-balance-checkbox');
 
     if (!auctionId || !auctionId.startsWith('auc_')) {
         auctionTitleHeading.textContent = 'Invalid Auction ID in URL';
@@ -154,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
         if (broadcastReset) {
-            socket.emit('adminAction', { status: 'idle' });
+            broadcastStateUpdate();
         }
     }
 
@@ -190,13 +192,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>`;
         
         updateTeamBiddingStatus();
-        
-        socket.emit('adminAction', {
-            status: 'bidding',
+        broadcastStateUpdate();    }
+
+    function broadcastStateUpdate(overrideState = {}) {
+        const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
+        let biddingTeamName = null;
+        if (biddingTeamId) {
+            const team = liveAuctionState.teams.find(t => t.id === biddingTeamId);
+            if (team) biddingTeamName = team.name;
+        }
+
+        const baseState = {
+            status: selectedPlayer ? 'bidding' : 'idle',
             selectedPlayer,
             currentBid,
-            biddingTeamName
-        });
+            biddingTeamName,
+            teams: liveAuctionState.teams.map(t => ({ ...t, auctionBudget: liveAuctionState.auction.budget })),
+            players: liveAuctionState.players,
+            showBalance: showBalanceCheckbox ? showBalanceCheckbox.checked : false,
+        };
+        socket.emit('adminAction', { ...baseState, ...overrideState });
     }
 
     function updateTeamBiddingStatus() {
@@ -283,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'unsold' }),
                     });
                     if (!response.ok) throw new Error('Server update failed');
-                    socket.emit('adminAction', { status: 'unsold', selectedPlayer });
+                    broadcastStateUpdate({ status: 'unsold' });
                     const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
                     if (playerIndex !== -1) liveAuctionState.players[playerIndex].status = 'unsold';
                     applyFiltersAndRenderPlayers();
@@ -309,7 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const errData = await response.json();
                         throw new Error(errData.message || 'Server rejected the sale.');
                     }
-                    socket.emit('adminAction', { status: 'sold', selectedPlayer: selectedPlayer, currentBid: currentBid, winningTeamName: winningTeam.name });
+                    broadcastStateUpdate({ status: 'sold', winningTeamName: winningTeam.name });
                     const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
                     if (playerIndex !== -1) {
                         liveAuctionState.players[playerIndex].status = 'sold';
@@ -328,6 +343,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+    openPresenterBtn.addEventListener('click', () => {
+        window.open(`/presenter/${auctionId}`, '_blank');
+    });
+
+    showBalanceCheckbox.addEventListener('change', () => {
+        broadcastStateUpdate();
+    });
+
     initializePanel();
 });
 

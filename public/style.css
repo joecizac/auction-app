@@ -344,12 +344,17 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 
 /* Base layout for ALL active states */
 .presenter-active, .presenter-sold, .presenter-unsold {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1.5fr 1.5fr 1fr;
+    gap: 48px;
     width: 100%;
     height: 100%;
-    gap: 48px;
+    align-items: center;
+}
+
+.presenter-sold .result-card, .presenter-unsold .result-card {
+    /* Make result card span two columns */
+    grid-column: 1 / span 2;
 }
 
 /* Bidding View (two cards) */
@@ -363,6 +368,45 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     text-align: center;
     flex: 1; /* Allows cards to grow and fill space */
     height: 90%; /* Consistent height */
+}
+
+/* Presenter Teams List */
+.presenter-teams-list {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.presenter-teams-list h3 {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    text-align: center;
+    color: var(--secondary-color);
+}
+
+.presenter-team-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.presenter-team-item:last-child {
+    border-bottom: none;
+}
+
+.presenter-team-item .team-name {
+    font-weight: 600;
+}
+.presenter-team-item .team-balance {
+    font-weight: 400;
+    color: #28a745; /* Green */
 }
 
 .player-name { font-size: 96px; font-weight: 700; }

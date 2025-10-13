@@ -26,7 +26,6 @@
                 <div class="card">
                     <div class="player-pool-header">
                         <h2>Player Pool</h2>
-                        <!-- THE FIX: Adding the filter controls -->
                         <div class="player-pool-filters">
                             <select id="filter-position"><option value="">All Positions</option></select>
                             <select id="filter-division"><option value="">All Divisions</option></select>
@@ -55,8 +54,8 @@
             </div>
 
             <footer class="card panel-footer">
-                <button class="btn btn-primary">Open Presentation Mode</button>
-                <label class="filter-checkbox"><input type="checkbox"> Show Team Balance</label>
+                <button id="open-presenter-btn" class="btn btn-primary">Open Presentation Mode</button>
+                <label class="filter-checkbox"><input type="checkbox" id="show-balance-checkbox"> Show Team Balance</label>
             </footer>
         </div>
     </div>
