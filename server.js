@@ -61,20 +61,17 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => res.sendFile(path
 app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
 app.get('/presenter/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'presenter.html')));
 app.get('/team-dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-dashboard.html')));
-
-// THE FIX: Re-adding the missing route for editing an auction
-app.get('/admin/auction/:auctionId/edit', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'create-auction.html'));
-});
+app.get('/admin/auction/:auctionId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'create-auction.html')));
 
 
 // API Routes
-// ... (All other API routes remain the same) ...
 // Auctions
 app.get('/api/auctions', async (req, res) => { await db.read(); res.json(db.data.auctions); });
 app.post('/api/auctions', async (req, res) => {
     const auctionData = req.body;
     auctionData.id = `auc_${Date.now()}`;
+    // THE FIX: Add the creation date to every new auction
+    auctionData.createdAt = new Date().toISOString();
     await db.read();
     if (!db.data.auctions) db.data.auctions = [];
     db.data.auctions.push(auctionData);
@@ -175,6 +172,21 @@ app.delete('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
     } else res.status(404).json({ message: 'Auction or teams not found' });
 });
 // Players
+app.delete('/api/auctions/:auctionId/players', async (req, res) => {
+    const { playerIds } = req.body;
+    if (!playerIds || !Array.isArray(playerIds)) {
+        return res.status(400).json({ message: 'Invalid request: playerIds must be an array.' });
+    }
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        auction.players = auction.players.filter(p => !playerIds.includes(p.dbId));
+        await db.write();
+        res.status(204).send();
+    } else {
+        res.status(404).json({ message: 'Auction or players not found' });
+    }
+});
 app.get('/api/auctions/:auctionId/players', async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
