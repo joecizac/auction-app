@@ -5,31 +5,36 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('auctionUpdate', (state) => {
         console.log('Received auction update:', state);
 
+        // THE FIX: Add a class to the container based on whether to show the teams list
+        const layoutClass = state.showBalance ? 'with-teams' : 'no-teams';
+
         switch (state.status) {
             case 'bidding':
+                presenterContent.className = `presenter-active ${layoutClass}`;
                 renderBiddingView(state);
                 break;
             case 'sold':
+                presenterContent.className = `presenter-sold ${layoutClass}`;
                 renderSoldView(state);
                 break;
             case 'unsold':
+                presenterContent.className = `presenter-unsold ${layoutClass}`;
                 renderUnsoldView(state);
                 break;
             case 'idle':
             default:
+                presenterContent.className = `presenter-idle`;
                 renderIdleView();
                 break;
         }
     });
 
     function renderIdleView() {
-        presenterContent.className = 'presenter-idle';
         presenterContent.innerHTML = '<h1>Waiting for the next player...</h1>';
     }
 
-    function renderTeamList(teams, showBalance, players) {
+    function renderTeamList(teams, players) {
         if (!teams || teams.length === 0) return '';
-
         let teamHtml = '<div class="presenter-teams-list"><h3>Teams</h3>';
         teams.forEach(team => {
             let balance = parseFloat(team.auctionBudget) - parseFloat(team.captainValue);
@@ -38,11 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     balance -= parseFloat(p.soldPrice);
                 }
             });
-
             teamHtml += `
                 <div class="presenter-team-item">
                     <span class="team-name">${team.name}</span>
-                    ${showBalance ? `<span class="team-balance">${new Intl.NumberFormat().format(balance)}</span>` : ''}
+                    <span class="team-balance">${new Intl.NumberFormat().format(balance)}</span>
                 </div>
             `;
         });
@@ -51,9 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderBiddingView(state) {
-        presenterContent.className = 'presenter-active';
         const { selectedPlayer, currentBid, biddingTeamName, teams, showBalance, players } = state;
-
         presenterContent.innerHTML = `
             <div class="player-info-card">
                 <div class="player-name">${selectedPlayer.name}</div>
@@ -65,12 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="bidding-team-label">Bidding Team</div>
                 <div class="bidding-team-name">${biddingTeamName || '--'}</div>
             </div>
-            ${renderTeamList(teams, showBalance, players)}
+            ${showBalance ? renderTeamList(teams, players) : ''}
         `;
     }
 
     function renderSoldView(state) {
-        presenterContent.className = 'presenter-sold';
         const { selectedPlayer, currentBid, winningTeamName, teams, showBalance, players } = state;
         presenterContent.innerHTML = `
             <div class="result-card">
@@ -79,19 +80,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="result-team-name">${winningTeamName}</div>
                 <div class="result-final-price">${new Intl.NumberFormat().format(currentBid)}</div>
             </div>
-            ${renderTeamList(teams, showBalance, players)}
+            ${showBalance ? renderTeamList(teams, players) : ''}
         `;
     }
 
     function renderUnsoldView(state) {
-        presenterContent.className = 'presenter-unsold';
         const { selectedPlayer, teams, showBalance, players } = state;
         presenterContent.innerHTML = `
              <div class="result-card">
                 <div class="result-player-name">${selectedPlayer.name}</div>
                 <div class="result-status-unsold">UNSOLD</div>
             </div>
-            ${renderTeamList(teams, showBalance, players)}
+            ${showBalance ? renderTeamList(teams, players) : ''}
         `;
     }
 });

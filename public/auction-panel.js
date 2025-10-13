@@ -3,17 +3,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 1];
 
-    // Listen for bids coming from team interfaces
-    socket.on('teamBidAction', (data) => {
-        // Only process the bid if it's for the current auction
-        if (data.auctionId === auctionId) {
-            const teamElement = teamsList.querySelector(`[data-team-id="${data.teamId}"]`);
-            if (teamElement && !teamElement.classList.contains('disabled')) {
-                teamElement.click(); // Simulate the admin clicking on the team
-            }
-        }
-    });
-
     // State Management
     let liveAuctionState = {
         auction: null,
@@ -192,8 +181,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>`;
         
         updateTeamBiddingStatus();
-        broadcastStateUpdate();    }
-
+        broadcastStateUpdate();
+    }
+    
     function broadcastStateUpdate(overrideState = {}) {
         const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
         let biddingTeamName = null;
@@ -214,8 +204,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         socket.emit('adminAction', { ...baseState, ...overrideState });
     }
 
+    // --- Bidding Logic ---
     function updateTeamBiddingStatus() {
-        if (!liveAuctionState.selectedPlayer) return;
+        if (!liveAuctionState.selectedPlayer && !liveAuctionState.currentBid) return;
         const nextBid = calculateNextBid(liveAuctionState.currentBid, liveAuctionState.biddingTeamId === null);
         liveAuctionState.teams.forEach(team => {
             const teamElement = teamsList.querySelector(`[data-team-id="${team.id}"]`);
@@ -235,13 +226,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     function calculateNextBid(currentBid, isFirstBid) {
-        if (isFirstBid) {
-            return currentBid; // First bid is just the base price
-        }
+        if (isFirstBid) return parseFloat(liveAuctionState.selectedPlayer.basePrice) || 0;
         let nextBid = currentBid;
         const bidIncrements = liveAuctionState.auction.bidIncrements || [];
         let increment = 25000;
-        
         for (const tier of bidIncrements) {
             const from = parseFloat(tier.from);
             const to = parseFloat(tier.to) || Infinity;
@@ -251,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         if (bidIncrements.length > 0 && nextBid >= (parseFloat(bidIncrements[bidIncrements.length - 1].to) || 0)) {
-            increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
+             increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
         }
         return nextBid + increment;
     }
@@ -262,7 +250,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!selectedCard || selectedCard.classList.contains('sold')) return;
         const playerId = selectedCard.dataset.playerId;
         if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === playerId) return;
-        
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         selectedCard.classList.add('selected');
         const player = liveAuctionState.players.find(p => p.dbId === playerId);
@@ -277,11 +264,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!selectedTeam || !liveAuctionState.selectedPlayer || selectedTeam.classList.contains('disabled')) return;
         const teamId = selectedTeam.dataset.teamId;
         if (teamId === liveAuctionState.biddingTeamId) return;
-
-        // THE FIX: Pass a flag to the calculator to check if it's the first bid
         const isFirstBid = liveAuctionState.biddingTeamId === null;
         const nextBid = calculateNextBid(liveAuctionState.currentBid, isFirstBid);
-
         liveAuctionState.currentBid = nextBid;
         liveAuctionState.biddingTeamId = teamId;
         updatePlayerDetailsPanel();
@@ -289,7 +273,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     playerDetailsPanel.addEventListener('click', async (event) => {
         const { selectedPlayer, currentBid, biddingTeamId } = liveAuctionState;
-
         if (event.target.id === 'mark-unsold-btn') {
             if (!selectedPlayer) return;
             if (confirm(`Are you sure you want to mark ${selectedPlayer.name} as unsold?`)) {
@@ -324,13 +307,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const errData = await response.json();
                         throw new Error(errData.message || 'Server rejected the sale.');
                     }
-                    broadcastStateUpdate({ status: 'sold', winningTeamName: winningTeam.name });
+
+                    // THE FIX: Update local state BEFORE broadcasting
                     const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
                     if (playerIndex !== -1) {
                         liveAuctionState.players[playerIndex].status = 'sold';
                         liveAuctionState.players[playerIndex].soldPrice = currentBid;
                         liveAuctionState.players[playerIndex].owningTeamId = biddingTeamId;
                     }
+                    
+                    // Now broadcast the new, correct state
+                    broadcastStateUpdate({ status: 'sold', winningTeamName: winningTeam.name });
+                    
                     applyFiltersAndRenderPlayers();
                     renderTeams();
                     resetPlayerDetailsPanel(false);
@@ -349,6 +337,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     showBalanceCheckbox.addEventListener('change', () => {
         broadcastStateUpdate();
+    });
+
+    socket.on('teamBidAction', (data) => {
+        if (data.auctionId === auctionId) {
+            const teamElement = teamsList.querySelector(`[data-team-id="${data.teamId}"]`);
+            if (teamElement && !teamElement.classList.contains('disabled')) {
+                teamElement.click();
+            }
+        }
     });
 
     initializePanel();
