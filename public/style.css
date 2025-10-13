@@ -469,6 +469,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 
 .team-player-info .player-name {
     font-weight: 600;
+    font-size: 18px;
 }
 
 .team-player-info .player-price {
