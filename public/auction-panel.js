@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // State Management
     let liveAuctionState = {
         auction: null,
-        players: [],
+        players: [], // Master list of all players
         teams: [],
         selectedPlayer: null,
         currentBid: 0,
@@ -24,17 +24,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const excludeSoldCheckbox = document.getElementById('exclude-sold');
 
     if (!auctionId || !auctionId.startsWith('auc_')) {
-        auctionTitleHeading.textContent = 'Invalid Auction';
+        auctionTitleHeading.textContent = 'Invalid Auction ID in URL';
         return;
     }
 
-    // --- Initialization and Rendering ---
+    // --- Initialization ---
     async function initializePanel() {
         try {
             const auctionRes = await fetch(`/api/auctions/${auctionId}`);
+            if (!auctionRes.ok) throw new Error('Auction not found');
             liveAuctionState.auction = await auctionRes.json();
+
             const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
             liveAuctionState.players = await playersRes.json();
+
             const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
             liveAuctionState.teams = await teamsRes.json();
             
@@ -45,25 +48,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             populateFilters();
             addFilterListeners();
+
             renderTeams();
             applyFiltersAndRenderPlayers();
             resetPlayerDetailsPanel(false); 
 
         } catch (error) {
             console.error('Failed to initialize panel:', error);
-            auctionTitleHeading.textContent = 'Error: Could not load auction data.';
+            auctionTitleHeading.textContent = `Error: ${error.message}`;
         }
     }
 
+    // --- Filter Logic ---
     function populateFilters() {
-        // Populate positions
         const sportPositions = { football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'], cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder'] };
         const positions = sportPositions[liveAuctionState.auction.sport] || [];
-        positions.forEach(pos => {
-            filterPosition.innerHTML += `<option value="${pos}">${pos}</option>`;
-        });
+        positions.forEach(pos => { filterPosition.innerHTML += `<option value="${pos}">${pos}</option>`; });
 
-        // Populate divisions
         const divisionLabels = { senior_men: 'Senior(Men)', senior_women: 'Senior(Women)', youth_men: 'Youth(Men)', youth_women: 'Youth(Women)', junior_boys: 'Junior(Boys)', junior_girls: 'Junior(Girls)' };
         (liveAuctionState.auction.allowedDivisions || []).forEach(divValue => {
             filterDivision.innerHTML += `<option value="${divValue}">${divisionLabels[divValue] || divValue}</option>`;
@@ -93,15 +94,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderPlayers(filteredPlayers);
     }
 
+    // --- Rendering Functions ---
     function renderPlayers(playersToRender) {
         playerGrid.innerHTML = '';
-        if (playersToRender.length > 0) {
+        if (playersToRender && playersToRender.length > 0) {
             playersToRender.forEach(player => {
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card';
                 playerCard.dataset.playerId = player.dbId;
                 if (player.status) playerCard.classList.add(player.status);
-                // Highlight if selected
                 if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === player.dbId) {
                     playerCard.classList.add('selected');
                 }
@@ -112,24 +113,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             playerGrid.innerHTML = '<p class="empty-message">No players match the current filters.</p>';
         }
     }
-
+    
     function renderTeams() {
         teamsList.innerHTML = '';
-        liveAuctionState.teams.forEach(team => {
-            const teamItem = document.createElement('div');
-            teamItem.className = 'team-list-item';
-            teamItem.dataset.teamId = team.id;
-            let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
-            let playerCount = 1;
-            liveAuctionState.players.forEach(p => {
-                if (p.status === 'sold' && p.owningTeamId === team.id) {
-                    balance -= parseFloat(p.soldPrice);
-                    playerCount++;
-                }
+        if (liveAuctionState.teams && liveAuctionState.teams.length > 0) {
+            liveAuctionState.teams.forEach(team => {
+                const teamItem = document.createElement('div');
+                teamItem.className = 'team-list-item';
+                teamItem.dataset.teamId = team.id;
+                let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
+                let playerCount = 1;
+                (liveAuctionState.players || []).forEach(p => {
+                    if (p.status === 'sold' && p.owningTeamId === team.id) {
+                        balance -= parseFloat(p.soldPrice);
+                        playerCount++;
+                    }
+                });
+                teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${new Intl.NumberFormat().format(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
+                teamsList.appendChild(teamItem);
             });
-            teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${new Intl.NumberFormat().format(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
-            teamsList.appendChild(teamItem);
-        });
+        }
     }
 
     function resetPlayerDetailsPanel(broadcastReset = true) {
@@ -187,14 +190,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     playerGrid.addEventListener('click', (event) => {
         const selectedCard = event.target.closest('.player-card');
         if (!selectedCard || selectedCard.classList.contains('sold')) return;
-
         const playerId = selectedCard.dataset.playerId;
-        const player = liveAuctionState.players.find(p => p.dbId === playerId);
-        if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === player.dbId) return; // Don't re-select same player
+        if (liveAuctionState.selectedPlayer && liveAuctionState.selectedPlayer.dbId === playerId) return;
         
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         selectedCard.classList.add('selected');
 
+        const player = liveAuctionState.players.find(p => p.dbId === playerId);
         liveAuctionState.selectedPlayer = player;
         liveAuctionState.currentBid = parseFloat(player.basePrice) || 0;
         liveAuctionState.biddingTeamId = null;
@@ -204,9 +206,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     teamsList.addEventListener('click', (event) => {
         const selectedTeam = event.target.closest('.team-list-item');
         if (!selectedTeam || !liveAuctionState.selectedPlayer) return;
-
         const teamId = selectedTeam.dataset.teamId;
         let nextBid = liveAuctionState.currentBid;
+        // THE FIX: Robustly get bid increments, defaulting to an empty array
         const bidIncrements = liveAuctionState.auction.bidIncrements || [];
         let increment = 25000;
         
@@ -236,18 +238,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (confirm(`Are you sure you want to mark ${selectedPlayer.name} as unsold?`)) {
                 try {
                     const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/status`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'unsold' }),
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'unsold' }),
                     });
                     if (!response.ok) throw new Error('Server update failed');
-
                     socket.emit('adminAction', { status: 'unsold', selectedPlayer });
-                    
                     const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
                     if (playerIndex !== -1) liveAuctionState.players[playerIndex].status = 'unsold';
-                    
-                    renderPlayers();
+                    applyFiltersAndRenderPlayers();
                     resetPlayerDetailsPanel(false);
                     alert(`${selectedPlayer.name} has been marked as unsold.`);
                 } catch (error) {
@@ -259,10 +256,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (event.target.id === 'finalize-bid-btn') {
             if (!selectedPlayer || !biddingTeamId) return alert('A player must be selected and a team must be bidding.');
-            
             const winningTeam = liveAuctionState.teams.find(t => t.id === biddingTeamId);
             if (!winningTeam) return alert('Error: Bidding team not found.');
-
             if (confirm(`Sell ${selectedPlayer.name} to ${winningTeam.name} for ${new Intl.NumberFormat().format(currentBid)}?`)) {
                 try {
                     const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/sell`, {
@@ -272,32 +267,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const errData = await response.json();
                         throw new Error(errData.message || 'Server rejected the sale.');
                     }
-
-                    // 1. Broadcast the FINAL 'sold' state
-                    socket.emit('adminAction', {
-                        status: 'sold',
-                        selectedPlayer: selectedPlayer,
-                        currentBid: currentBid,
-                        winningTeamName: winningTeam.name,
-                    });
-
-                    // 2. Update local data
+                    socket.emit('adminAction', { status: 'sold', selectedPlayer: selectedPlayer, currentBid: currentBid, winningTeamName: winningTeam.name });
                     const playerIndex = liveAuctionState.players.findIndex(p => p.dbId === selectedPlayer.dbId);
                     if (playerIndex !== -1) {
                         liveAuctionState.players[playerIndex].status = 'sold';
                         liveAuctionState.players[playerIndex].soldPrice = currentBid;
                         liveAuctionState.players[playerIndex].owningTeamId = biddingTeamId;
                     }
-
-                    // 3. Update local UI
-                    renderPlayers();
+                    applyFiltersAndRenderPlayers();
                     renderTeams();
-                    
-                    // 4. Reset the details panel LOCALLY ONLY
                     resetPlayerDetailsPanel(false);
-                    
                     alert(`${selectedPlayer.name} sold successfully!`);
-
                 } catch (error) {
                     console.error('Error selling player:', error);
                     alert(`An error occurred: ${error.message}`);
