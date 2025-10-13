@@ -178,35 +178,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <button id="mark-unsold-btn" class="btn btn-secondary" style="width: 100%;">Mark Unsold</button>
             </div>`;
         
+        updateTeamBiddingStatus();
+        
         socket.emit('adminAction', {
             status: 'bidding',
             selectedPlayer,
             currentBid,
             biddingTeamName
         });
-
-        updateTeamBiddingStatus();
     }
 
-    // Function to manage team bidding eligibility 
     function updateTeamBiddingStatus() {
         if (!liveAuctionState.selectedPlayer) return;
-
-        const nextBid = calculateNextBid(liveAuctionState.currentBid);
-
+        const nextBid = calculateNextBid(liveAuctionState.currentBid, liveAuctionState.biddingTeamId === null);
         liveAuctionState.teams.forEach(team => {
             const teamElement = teamsList.querySelector(`[data-team-id="${team.id}"]`);
             if (!teamElement) return;
-
-            // Calculate current balance
             let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
             liveAuctionState.players.forEach(p => {
                 if (p.status === 'sold' && p.owningTeamId === team.id) {
                     balance -= parseFloat(p.soldPrice);
                 }
             });
-
-            // Disable team if they can't afford the next bid
             if (balance < nextBid) {
                 teamElement.classList.add('disabled');
             } else {
@@ -215,12 +208,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Helper function to calculate the next bid amount
-    function calculateNextBid(currentBid) {
+    function calculateNextBid(currentBid, isFirstBid) {
+        if (isFirstBid) {
+            return currentBid; // First bid is just the base price
+        }
         let nextBid = currentBid;
         const bidIncrements = liveAuctionState.auction.bidIncrements || [];
-        let increment = 25000; // Default increment
-
+        let increment = 25000;
+        
         for (const tier of bidIncrements) {
             const from = parseFloat(tier.from);
             const to = parseFloat(tier.to) || Infinity;
@@ -232,7 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (bidIncrements.length > 0 && nextBid >= (parseFloat(bidIncrements[bidIncrements.length - 1].to) || 0)) {
             increment = parseFloat(bidIncrements[bidIncrements.length - 1].increment);
         }
-        
         return nextBid + increment;
     }
 
@@ -245,7 +239,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         document.querySelectorAll('.player-card.selected').forEach(card => card.classList.remove('selected'));
         selectedCard.classList.add('selected');
-
         const player = liveAuctionState.players.find(p => p.dbId === playerId);
         liveAuctionState.selectedPlayer = player;
         liveAuctionState.currentBid = parseFloat(player.basePrice) || 0;
@@ -256,11 +249,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     teamsList.addEventListener('click', (event) => {
         const selectedTeam = event.target.closest('.team-list-item');
         if (!selectedTeam || !liveAuctionState.selectedPlayer || selectedTeam.classList.contains('disabled')) return;
-        
         const teamId = selectedTeam.dataset.teamId;
         if (teamId === liveAuctionState.biddingTeamId) return;
 
-        const nextBid = calculateNextBid(liveAuctionState.currentBid);
+        // THE FIX: Pass a flag to the calculator to check if it's the first bid
+        const isFirstBid = liveAuctionState.biddingTeamId === null;
+        const nextBid = calculateNextBid(liveAuctionState.currentBid, isFirstBid);
 
         liveAuctionState.currentBid = nextBid;
         liveAuctionState.biddingTeamId = teamId;
