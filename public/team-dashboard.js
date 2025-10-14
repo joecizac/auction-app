@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const myTeamPanel = document.getElementById('my-team-panel');
     const biddingArea = document.getElementById('bidding-area');
     const otherTeamsContainer = document.getElementById('other-teams-container');
+    const divisionLabels = { senior_men: 'Senior Men', senior_women: 'Senior Women', youth_men: 'Youth Men', youth_women: 'Youth Women', junior_boys: 'Junior Boys', junior_girls: 'Junior Girls' };
 
     if (!auctionId || !myTeamId) {
         document.body.innerHTML = '<h1>Error: Invalid Link</h1>';
@@ -16,15 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let auctionData = null;
     let myTeamData = null; 
-
-    const divisionLabels = {
-        senior_men: 'Senior Men',
-        senior_women: 'Senior Women',
-        youth_men: 'Youth Men',
-        youth_women: 'Youth Women',
-        junior_boys: 'Junior Boys',
-        junior_girls: 'Junior Girls',
-    };
 
     // --- INITIAL DATA LOAD ---
     async function initializeView() {
@@ -125,9 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderIdleView() { biddingArea.innerHTML = '<h2>Waiting for next player...</h2>'; }
 
     function renderBiddingView(state) {
-        const { selectedPlayer, currentBid, biddingTeamName } = state;
-        const isFirstBid = biddingTeamName === '--';
-        const nextBid = calculateNextBid(currentBid, isFirstBid);
+        const { selectedPlayer, currentBid, biddingTeamName } = state;        
+        const isFirstBid = !biddingTeamName;
+        const nextBid = isFirstBid ? currentBid : calculateNextBid(currentBid);
         
         let myCurrentBalance = 0;
         const myTeamBalanceEl = document.querySelector('.my-team-balance');
@@ -144,7 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
             <div class="bid-info">
                 <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${new Intl.NumberFormat().format(currentBid)}</span></div>
-                <div class="bid-info-item"><span class="bid-info-label">Bidding Team</span><span class="bid-info-value">${biddingTeamName}</span></div>
+                <div class="bid-info-item">
+                    <span class="bid-info-label">Bidding Team</span>
+                    <!-- THE FIX #2: Use a fallback to display '--' instead of 'null' -->
+                    <span class="bid-info-value">${biddingTeamName || '--'}</span>
+                </div>
             </div>
             <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>BID ${new Intl.NumberFormat().format(nextBid)}</button>`;
     }
@@ -164,8 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    function calculateNextBid(currentBid, isFirstBid) {
-        if (isFirstBid) return currentBid;
+    function calculateNextBid(currentBid) {
         let nextBid = currentBid;
         const bidIncrements = auctionData.bidIncrements || [];
         let increment = 25000;
