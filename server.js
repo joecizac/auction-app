@@ -159,9 +159,29 @@ app.get('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction && auction.teams) {
         const team = auction.teams.find(t => t.id === req.params.teamId);
-        if (team) res.json(team);
-        else res.status(404).json({ message: 'Team not found' });
+        if (team) {
+            const players = (auction.players || []).filter(p => p.owningTeamId === req.params.teamId);
+            res.json({ ...team, players });
+        } else res.status(404).json({ message: 'Team not found' });
     } else res.status(404).json({ message: 'Auction or teams not found' });
+});
+app.get('/api/full-dashboard-data/:auctionId/:myTeamId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (!auction) {
+        return res.status(404).json({ message: 'Auction not found' });
+    }
+
+    const myTeam = (auction.teams || []).find(t => t.id === req.params.myTeamId);
+    if (!myTeam) {
+        return res.status(404).json({ message: 'Your team was not found in this auction.' });
+    }
+
+    const allTeams = auction.teams || [];
+    // Only send players who are actually sold to calculate team stats
+    const allPlayers = (auction.players || []).filter(p => p.status === 'sold');
+    
+    res.json({ auction, myTeam, allTeams, allPlayers });
 });
 app.put('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
     await db.read();
@@ -205,6 +225,21 @@ app.delete('/api/auctions/:auctionId/teams/:teamId/players/:playerId', async (re
     } else {
         res.status(404).json({ message: 'Auction or players not found' });
     }
+});
+app.post('/api/auctions/:auctionId/teams/:teamId/remove-player', async (req, res) => {
+    const { playerId } = req.body;
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (auction && auction.players) {
+        const playerIndex = auction.players.findIndex(p => p.dbId === playerId);
+        if (playerIndex !== -1) {
+            auction.players[playerIndex].status = 'unsold';
+            delete auction.players[playerIndex].owningTeamId;
+            delete auction.players[playerIndex].soldPrice;
+            await db.write();
+            res.status(200).json({ message: 'Player removed successfully.' });
+        } else res.status(404).json({ message: 'Player not found' });
+    } else res.status(404).json({ message: 'Auction or players not found' });
 });
 
 // Players
@@ -361,6 +396,20 @@ app.get('/api/dashboard-data/:auctionId/:teamId', async (req, res) => {
     const players = (auction.players || []).filter(p => p.owningTeamId === req.params.teamId);
     res.json({ auction, team, players });
 });
+app.get('/api/full-dashboard-data/:auctionId/:myTeamId', async (req, res) => {
+    await db.read();
+    const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
+    if (!auction) return res.status(404).json({ message: 'Auction not found' });
+
+    const myTeam = (auction.teams || []).find(t => t.id === req.params.myTeamId);
+    if (!myTeam) return res.status(404).json({ message: 'Your team was not found in this auction.' });
+
+    const allTeams = auction.teams || [];
+    const allPlayers = (auction.players || []).filter(p => p.status === 'sold');
+    
+    res.json({ auction, myTeam, allTeams, allPlayers });
+});
+
 
 // Socket.IO
 io.on('connection', (socket) => {

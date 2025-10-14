@@ -2,146 +2,173 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const urlParams = new URLSearchParams(window.location.search);
     const auctionId = urlParams.get('auctionId');
-    const teamId = urlParams.get('teamId');
+    const myTeamId = urlParams.get('teamId');
 
-    // Element references
-    const teamNameHeading = document.getElementById('team-name-heading');
-    const teamBalanceEl = document.getElementById('team-balance');
-    const teamPlayerCountEl = document.getElementById('team-player-count');
+    // Element References
+    const myTeamPanel = document.getElementById('my-team-panel');
     const biddingArea = document.getElementById('bidding-area');
+    const otherTeamsContainer = document.getElementById('other-teams-container');
 
-    if (!auctionId || !teamId) {
-        teamNameHeading.textContent = 'Error: Invalid Link';
+    if (!auctionId || !myTeamId) {
+        document.body.innerHTML = '<h1>Error: Invalid Link</h1>';
         return;
     }
 
-    let teamData = null;
     let auctionData = null;
+    let myTeamData = null; 
 
-    // Initial data load
-    async function initializeDashboard() {
+    const divisionLabels = {
+        senior_men: 'Senior Men',
+        senior_women: 'Senior Women',
+        youth_men: 'Youth Men',
+        youth_women: 'Youth Women',
+        junior_boys: 'Junior Boys',
+        junior_girls: 'Junior Girls',
+    };
+
+    // --- INITIAL DATA LOAD ---
+    async function initializeView() {
         try {
-            const response = await fetch(`/api/dashboard-data/${auctionId}/${teamId}`);
+            const response = await fetch(`/api/full-dashboard-data/${auctionId}/${myTeamId}`);
             if (!response.ok) throw new Error('Could not load dashboard data.');
-            const data = await response.json();
             
-            teamData = data.team;
+            const data = await response.json();
             auctionData = data.auction;
-            const { players } = data;
+            myTeamData = data.myTeam;
+            
+            renderAllPanels(data);
 
-            teamNameHeading.textContent = teamData.name;
-            updateTeamStats(auctionData, players);
         } catch (error) {
             console.error('Failed to load dashboard:', error);
-            teamNameHeading.textContent = 'Error loading data.';
+            document.body.innerHTML = '<h1>Error loading data.</h1>';
         }
     }
 
-    function updateTeamStats(auction, players) {
-        const totalBudget = parseFloat(auction.budget);
-        const captainValue = parseFloat(teamData.captainValue);
-        let amountSpent = captainValue;
-        let playerCount = 1;
-
-        players.forEach(p => {
-            amountSpent += parseFloat(p.soldPrice);
-            playerCount++;
-        });
-        const remainingBalance = totalBudget - amountSpent;
-
-        teamBalanceEl.textContent = new Intl.NumberFormat().format(remainingBalance);
-        teamPlayerCountEl.textContent = playerCount;
+    // --- RENDER FUNCTIONS ---
+    function renderAllPanels(data) {
+        renderMyTeamPanel(data);
+        renderOtherTeamsPanel(data);
     }
 
-    // Listen for live auction updates from the server
-    socket.on('auctionUpdate', (state) => {
-        if (!teamData || !auctionData) return;
+    function renderMyTeamPanel({ myTeam, allPlayers }) {
+        const myPlayers = allPlayers.filter(p => p.owningTeamId === myTeam.id);
+        const captainValue = parseFloat(myTeam.captainValue);
+        let amountSpent = captainValue;
+        myPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
+        const balance = parseFloat(auctionData.budget) - amountSpent;
 
-        // THE FIX: Use a switch statement to handle all states correctly
-        switch (state.status) {
-            case 'bidding':
-                renderBiddingView(state);
-                break;
-            case 'sold':
-                renderSoldView(state);
-                if (state.winningTeamName === teamData.name) {
-                    initializeDashboard();
-                }
-                break;
-            case 'unsold':
-                renderUnsoldView(state);
-                break;
-            default:
-                renderIdleView();
-                break;
+        let playersHtml = `<div class="my-team-header">
+                               <div class="team-logo-placeholder"></div>
+                               <h2>${myTeam.name}</h2>
+                               <div class="my-team-balance">${new Intl.NumberFormat().format(balance)}</div>
+                               <div class="my-team-spent">Spent: ${new Intl.NumberFormat().format(amountSpent)}</div>
+                           </div>
+                           <div class="my-team-squad-list">`;
+        
+        playersHtml += `<div class="squad-list-item captain"><div class="player-info"><span class="player-name">${myTeam.captainName} (C)</span><span class="player-role">Captain</span></div><span class="player-price">${new Intl.NumberFormat().format(captainValue)}</span></div>`;
+
+        myPlayers.forEach(player => {
+            const divisionColorClass = `division-${(player.division || '').split('_')[0]}`;
+            const formattedDivision = divisionLabels[player.division] || player.division;
+            playersHtml += `<div class="squad-list-item ${divisionColorClass}">
+                                <div class="player-info">
+                                    <span class="player-name">${player.name}</span>
+                                    <span class="player-role">${formattedDivision} | ${player.position}</span>
+                                </div>
+                                <span class="player-price">${new Intl.NumberFormat().format(player.soldPrice)}</span>
+                            </div>`;
+        });
+        
+        playersHtml += '</div>';
+        myTeamPanel.innerHTML = playersHtml;
+    }
+
+    function renderOtherTeamsPanel({ allTeams, allPlayers, myTeam }) {
+        const otherTeams = allTeams.filter(t => t.id !== myTeam.id);
+        let teamsHtml = '';
+        otherTeams.forEach(team => {
+            const teamPlayers = allPlayers.filter(p => p.owningTeamId === team.id);
+            const captainValue = parseFloat(team.captainValue);
+            let amountSpent = captainValue;
+            teamPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
+            const balance = parseFloat(auctionData.budget) - amountSpent;
+            
+            teamsHtml += `<div class="other-team-card">
+                            <div class="other-team-name">${team.name}</div>
+                            <div class="other-team-stats">
+                                <span>Players: ${teamPlayers.length + 1}</span>
+                                <span>Balance: ${new Intl.NumberFormat().format(balance)}</span>
+                                <span>Spent: ${new Intl.NumberFormat().format(amountSpent)}</span>
+                            </div>
+                        </div>`;
+        });
+        otherTeamsContainer.innerHTML = teamsHtml;
+    }
+
+    // --- REAL-TIME UPDATES ---
+    socket.on('auctionUpdate', (state) => {
+        if (!auctionData || !myTeamData) return;
+        if (state.status === 'sold') {
+            initializeView(); 
+        }
+        if (state.status === 'bidding') {
+            renderBiddingView(state);
+        } else if (state.status === 'sold') {
+            renderSoldView(state);
+        } else if (state.status === 'unsold') {
+            renderUnsoldView(state);
+        } else {
+            renderIdleView();
         }
     });
 
-    function renderIdleView() {
-        biddingArea.innerHTML = '<h2>Waiting for the next player...</h2>';
-    }
+    function renderIdleView() { biddingArea.innerHTML = '<h2>Waiting for next player...</h2>'; }
 
     function renderBiddingView(state) {
         const { selectedPlayer, currentBid, biddingTeamName } = state;
         const isFirstBid = biddingTeamName === '--';
         const nextBid = calculateNextBid(currentBid, isFirstBid);
-        const myBalance = parseFloat(teamBalanceEl.textContent.replace(/,/g, ''));
         
-        const isMyBid = biddingTeamName === teamData.name;
-        const canAfford = myBalance >= nextBid;
+        let myCurrentBalance = 0;
+        const myTeamBalanceEl = document.querySelector('.my-team-balance');
+        if (myTeamBalanceEl) {
+            myCurrentBalance = parseFloat(myTeamBalanceEl.textContent.replace(/,/g, ''));
+        }
+        
+        const isMyBid = biddingTeamName === myTeamData.name;
+        const canAfford = myCurrentBalance >= nextBid;
         const isButtonDisabled = isMyBid || !canAfford;
 
         biddingArea.innerHTML = `
             <div class="player-name">${selectedPlayer.name}</div>
             <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
             <div class="bid-info">
-                <div class="bid-info-item">
-                    <span class="bid-info-label">Current Bid</span>
-                    <span class="bid-info-value">${new Intl.NumberFormat().format(currentBid)}</span>
-                </div>
-                <div class="bid-info-item">
-                    <span class="bid-info-label">Bidding Team</span>
-                    <span class="bid-info-value">${biddingTeamName}</span>
-                </div>
+                <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${new Intl.NumberFormat().format(currentBid)}</span></div>
+                <div class="bid-info-item"><span class="bid-info-label">Bidding Team</span><span class="bid-info-value">${biddingTeamName}</span></div>
             </div>
-            <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>
-                BID ${new Intl.NumberFormat().format(nextBid)}
-            </button>
-        `;
+            <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>BID ${new Intl.NumberFormat().format(nextBid)}</button>`;
     }
 
     function renderSoldView(state) {
-        const amIWinner = state.winningTeamName === teamData.name;
-        biddingArea.innerHTML = `
-            <h2>${state.selectedPlayer.name} has been sold!</h2>
-            <p>Winning Team: ${state.winningTeamName}</p>
-            <p>Final Price: ${new Intl.NumberFormat().format(state.currentBid)}</p>
-            ${amIWinner ? '<h3>Congratulations! This player is now on your team.</h3>' : ''}
-        `;
+        const amIWinner = state.winningTeamName === myTeamData.name;
+        biddingArea.innerHTML = `<h2>${state.selectedPlayer.name} has been sold!</h2><p>Winning Team: ${state.winningTeamName}</p><p>Final Price: ${new Intl.NumberFormat().format(state.currentBid)}</p>${amIWinner ? '<h3>Congratulations! This player is now on your team.</h3>' : ''}`;
     }
 
-    // --- NEW: Function to render the unsold state ---
     function renderUnsoldView(state) {
-        biddingArea.innerHTML = `
-            <h2>${state.selectedPlayer.name} went UNSOLD</h2>
-            <p>This player may be re-nominated later in the auction.</p>
-        `;
+        biddingArea.innerHTML = `<h2>${state.selectedPlayer.name} went UNSOLD</h2><p>This player may be re-nominated later in the auction.</p>`;
     }
-
+    
     biddingArea.addEventListener('click', (event) => {
         if (event.target.id === 'bid-btn' && !event.target.disabled) {
-            socket.emit('teamBid', { auctionId, teamId });
+            socket.emit('teamBid', { auctionId, teamId: myTeamId });
         }
     });
     
     function calculateNextBid(currentBid, isFirstBid) {
-        if (isFirstBid) {
-            return currentBid;
-        }
+        if (isFirstBid) return currentBid;
         let nextBid = currentBid;
         const bidIncrements = auctionData.bidIncrements || [];
         let increment = 25000;
-        
         for (const tier of bidIncrements) {
             const from = parseFloat(tier.from);
             const to = parseFloat(tier.to) || Infinity;
@@ -156,6 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return nextBid + increment;
     }
 
-    initializeDashboard();
+    initializeView();
 });
 
