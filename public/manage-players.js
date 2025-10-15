@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 2];
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
 
     // --- State Management ---
     let allPlayers = []; // This will hold the master list of players
@@ -131,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>${player.position}</td>
                     <td>${player.division}</td>
                     <td>${player.experience}</td>
-                    <td>${new Intl.NumberFormat().format(player.basePrice)}</td>
+                    <td>${formatCurrency(player.basePrice)}</td>
                 </tr>
             `;
         }).join('');
