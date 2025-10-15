@@ -88,9 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
             teamsHtml += `<div class="other-team-card">
                             <div class="other-team-name">${team.name}</div>
                             <div class="other-team-stats">
-                                <span>Players: ${teamPlayers.length + 1}</span>
-                                <span>Balance: ${new Intl.NumberFormat().format(balance)}</span>
-                                <span>Spent: ${new Intl.NumberFormat().format(amountSpent)}</span>
+                                <div class="stat-item">
+                                    <span class="stat-label">Balance</span>
+                                    <span class="stat-value">${new Intl.NumberFormat().format(balance)}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Spent</span>
+                                    <span class="stat-value">${new Intl.NumberFormat().format(amountSpent)}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Players</span>
+                                    <span class="stat-value">${teamPlayers.length + 1}</span>
+                                </div>
                             </div>
                         </div>`;
         });
