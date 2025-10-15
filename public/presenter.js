@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const presenterContent = document.getElementById('presenter-content');
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
 
     socket.on('auctionUpdate', (state) => {
         console.log('Received auction update:', state);
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             teamHtml += `
                 <div class="presenter-team-item">
                     <span class="team-name">${team.name}</span>
-                    <span class="team-balance">${new Intl.NumberFormat().format(balance)}</span>
+                    <span class="team-balance">${formatCurrency(balance)}</span>
                 </div>
             `;
         });
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="bidding-info-card">
                 <div class="bid-label">Current Bid</div>
-                <div class="bid-amount">${new Intl.NumberFormat().format(currentBid)}</div>
+                <div class="bid-amount">${formatCurrency(currentBid)}</div>
                 <div class="bidding-team-label">Bidding Team</div>
                 <div class="bidding-team-name">${biddingTeamName || '--'}</div>
             </div>
@@ -78,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="result-player-name">${selectedPlayer.name}</div>
                 <div class="result-status-sold">SOLD TO</div>
                 <div class="result-team-name">${winningTeamName}</div>
-                <div class="result-final-price">${new Intl.NumberFormat().format(currentBid)}</div>
+                <div class="result-final-price">${formatCurrency(currentBid)}</div>
             </div>
             ${showBalance ? renderTeamList(teams, players) : ''}
         `;
