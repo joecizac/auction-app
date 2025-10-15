@@ -22,16 +22,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const auction = await auctionRes.json();
         auctionTitleHeading.textContent = `Manage Teams: ${auction.title}`;
 
-        // Fetch the teams for this auction
+        // THE FIX: Fetch both teams AND players
         const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
         const teams = await teamsRes.json();
+        const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
+        const allPlayers = await playersRes.json();
 
         if (teams.length === 0) {
             teamsGridWrapper.innerHTML = '<p>No teams created for this auction yet.</p>';
         } else {
             teamsGridWrapper.innerHTML = ''; // Clear the message
             teams.forEach(team => {
-                // THE FIX: Wrap the card in a link to the edit page
+                let playerCount = 1; // Start with the captain
+                const wonPlayers = allPlayers.filter(p => p.status === 'sold' && p.owningTeamId === team.id);
+                playerCount += wonPlayers.length;
+
                 const link = document.createElement('a');
                 link.href = `/admin/auction/${auctionId}/teams/${team.id}/edit`;
                 link.className = 'auction-card-link';
@@ -45,7 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="card-content">
                         <h3>${team.name}</h3>
                         <p>Manager: ${team.managerName || 'N/A'}</p>
-                        <p class="date">Players: 0</p>
+                        <!-- Use the calculated player count -->
+                        <p class="date">Players: ${playerCount}</p> 
                     </div>
                 `;
                 link.appendChild(teamCard);
