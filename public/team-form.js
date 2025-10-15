@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const pathParts = window.location.pathname.split('/');
     const isEditing = pathParts[pathParts.length - 1] === 'edit';
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
 
     let auctionId, teamId;
 
@@ -83,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         captainItem.innerHTML = `
             <div class="team-player-info">
                 <span class="player-name">${team.captainName} (Captain)</span>
-                <span class="player-price">${new Intl.NumberFormat().format(team.captainValue)}</span>
+                <span class="player-price">${formatCurrency(team.captainValue)}</span>
             </div>
         `;
         teamPlayersList.appendChild(captainItem);
@@ -95,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             playerItem.innerHTML = `
                 <div class="team-player-info">
                     <span class="player-name">${player.name}</span>
-                    <span class="player-price">${new Intl.NumberFormat().format(player.soldPrice)}</span>
+                    <span class="player-price">${formatCurrency(player.soldPrice)}</span>
                 </div>
                 <button type="button" class="btn btn-danger btn-small remove-player-btn" data-player-id="${player.dbId}">Remove</button>
             `;
