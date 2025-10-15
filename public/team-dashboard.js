@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const auctionId = urlParams.get('auctionId');
     const myTeamId = urlParams.get('teamId');
 
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
+
     // Element References
     const myTeamPanel = document.getElementById('my-team-panel');
     const biddingArea = document.getElementById('bidding-area');
@@ -52,12 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let playersHtml = `<div class="my-team-header">
                                <div class="team-logo-placeholder"></div>
                                <h2>${myTeam.name}</h2>
-                               <div class="my-team-balance">${new Intl.NumberFormat().format(balance)}</div>
-                               <div class="my-team-spent">Spent: ${new Intl.NumberFormat().format(amountSpent)}</div>
+                               <div class="my-team-balance">${formatCurrency(balance)}</div>
+                               <div class="my-team-spent">Spent: ${formatCurrency(amountSpent)}</div>
                            </div>
                            <div class="my-team-squad-list">`;
         
-        playersHtml += `<div class="squad-list-item captain"><div class="player-info"><span class="player-name">${myTeam.captainName} (C)</span><span class="player-role">Captain</span></div><span class="player-price">${new Intl.NumberFormat().format(captainValue)}</span></div>`;
+        playersHtml += `<div class="squad-list-item captain"><div class="player-info"><span class="player-name">${myTeam.captainName} (C)</span><span class="player-role">Captain</span></div><span class="player-price">${formatCurrency(captainValue)}</span></div>`;
 
         myPlayers.forEach(player => {
             const divisionColorClass = `division-${(player.division || '').split('_')[0]}`;
@@ -67,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span class="player-name">${player.name}</span>
                                     <span class="player-role">${formattedDivision} | ${player.position}</span>
                                 </div>
-                                <span class="player-price">${new Intl.NumberFormat().format(player.soldPrice)}</span>
+                                <span class="player-price">${formatCurrency(player.soldPrice)}</span>
                             </div>`;
         });
         
@@ -90,11 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="other-team-stats">
                                 <div class="stat-item">
                                     <span class="stat-label">Balance</span>
-                                    <span class="stat-value">${new Intl.NumberFormat().format(balance)}</span>
+                                    <span class="stat-value">${formatCurrency(balance)}</span>
                                 </div>
                                 <div class="stat-item">
                                     <span class="stat-label">Spent</span>
-                                    <span class="stat-value">${new Intl.NumberFormat().format(amountSpent)}</span>
+                                    <span class="stat-value">${formatCurrency(amountSpent)}</span>
                                 </div>
                                 <div class="stat-item">
                                     <span class="stat-label">Players</span>
@@ -133,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let myCurrentBalance = 0;
         const myTeamBalanceEl = document.querySelector('.my-team-balance');
         if (myTeamBalanceEl) {
-            myCurrentBalance = parseFloat(myTeamBalanceEl.textContent.replace(/,/g, ''));
+            myCurrentBalance = parseFloat(myTeamBalanceEl.textContent.replace(/₹|,/g, ''));
         }
         
         const isMyBid = biddingTeamName === myTeamData.name;
@@ -144,14 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="player-name">${selectedPlayer.name}</div>
             <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
             <div class="bid-info">
-                <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${new Intl.NumberFormat().format(currentBid)}</span></div>
+                <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${formatCurrency(currentBid)}</span></div>
                 <div class="bid-info-item">
                     <span class="bid-info-label">Bidding Team</span>
-                    <!-- THE FIX #2: Use a fallback to display '--' instead of 'null' -->
                     <span class="bid-info-value">${biddingTeamName || '--'}</span>
                 </div>
             </div>
-            <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>BID ${new Intl.NumberFormat().format(nextBid)}</button>`;
+            <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>BID ${formatCurrency(nextBid)}</button>`;
     }
 
     function renderSoldView(state) {
