@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const socket = io();
     const pathParts = window.location.pathname.split('/');
     const auctionId = pathParts[pathParts.length - 1];
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
 
     // State Management
     let liveAuctionState = {
@@ -131,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         playerCount++;
                     }
                 });
-                teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${new Intl.NumberFormat().format(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
+                teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${formatCurrency(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
                 teamsList.appendChild(teamItem);
             });
         }
@@ -171,8 +172,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="current-player-details">
                 <h3 class="current-player-name">${selectedPlayer.name}</h3>
                 <p class="current-player-info">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
-                <div class="current-player-price-info"><span>Base Price</span><span class="price-value">${new Intl.NumberFormat().format(selectedPlayer.basePrice)}</span></div>
-                <div class="current-player-price-info current-bid"><span>Current Bid</span><span class="price-value">${new Intl.NumberFormat().format(currentBid)}</span></div>
+                <div class="current-player-price-info"><span>Base Price</span><span class="price-value">${formatCurrency(selectedPlayer.basePrice)}</span></div>
+                <div class="current-player-price-info current-bid"><span>Current Bid</span><span class="price-value">${formatCurrency(currentBid)}</span></div>
                 <div class="current-player-price-info"><span>By</span><span class="price-value bidding-team-name">${biddingTeamName}</span></div>
             </div>
             <div class="current-player-actions">
@@ -298,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!selectedPlayer || !biddingTeamId) return alert('A player must be selected and a team must be bidding.');
             const winningTeam = liveAuctionState.teams.find(t => t.id === biddingTeamId);
             if (!winningTeam) return alert('Error: Bidding team not found.');
-            if (confirm(`Sell ${selectedPlayer.name} to ${winningTeam.name} for ${new Intl.NumberFormat().format(currentBid)}?`)) {
+            if (confirm(`Sell ${selectedPlayer.name} to ${winningTeam.name} for ${formatCurrency(currentBid)}?`)) {
                 try {
                     const response = await fetch(`/api/auctions/${auctionId}/players/${selectedPlayer.dbId}/sell`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ soldPrice: currentBid, owningTeamId: biddingTeamId }),
