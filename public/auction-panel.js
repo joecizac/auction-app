@@ -132,7 +132,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         playerCount++;
                     }
                 });
-                teamItem.innerHTML = `<div class="team-info"><span class="team-name">${team.name}</span><span class="team-budget">Balance: ${formatCurrency(balance)}</span></div><div class="team-player-count">${playerCount} Players</div>`;
+
+                const logoHtml = team.logoImage ? `<img src="${team.logoImage}" alt="${team.name} logo">` : `<span>${team.name.charAt(0).toUpperCase()}</span>`;
+
+                teamItem.innerHTML = `
+                    <div class="team-logo">${logoHtml}</div>
+                    <div class="team-info">
+                        <span class="team-name">${team.name}</span>
+                        <span class="team-budget">Balance: ${formatCurrency(balance)}</span>
+                    </div>
+                    <div class="team-player-count">${playerCount} Players</div>`;
                 teamsList.appendChild(teamItem);
             });
         }
@@ -157,14 +166,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
-        let biddingTeamName = '--';
+        let biddingTeamDisplay = '<span>--</span>';
         document.querySelectorAll('.team-list-item.bidding').forEach(item => item.classList.remove('bidding'));
         if (biddingTeamId) {
             const team = liveAuctionState.teams.find(t => t.id === biddingTeamId);
             if (team) {
-                biddingTeamName = team.name;
                 const teamElement = teamsList.querySelector(`[data-team-id="${biddingTeamId}"]`);
                 if (teamElement) teamElement.classList.add('bidding');
+                
+                const logoHtml = team.logoImage ? `<img src="${team.logoImage}" alt="${team.name}" class="bidding-team-logo">` : '';
+                biddingTeamDisplay = `<div class="bidding-team-display">${logoHtml}<span>${team.name}</span></div>`;
             }
         }
 
@@ -174,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <p class="current-player-info">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
                 <div class="current-player-price-info"><span>Base Price</span><span class="price-value">${formatCurrency(selectedPlayer.basePrice)}</span></div>
                 <div class="current-player-price-info current-bid"><span>Current Bid</span><span class="price-value">${formatCurrency(currentBid)}</span></div>
-                <div class="current-player-price-info"><span>By</span><span class="price-value bidding-team-name">${biddingTeamName}</span></div>
+                <div class="current-player-price-info"><span>By</span><div class="price-value bidding-team-name">${biddingTeamDisplay}</div></div>
             </div>
             <div class="current-player-actions">
                 <button id="finalize-bid-btn" class="btn btn-primary" style="width: 100%;">Finalize Bid (Sell)</button>

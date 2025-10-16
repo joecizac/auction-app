@@ -43,10 +43,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const teamCard = document.createElement('div');
                 teamCard.className = 'auction-card';
+
+                const imageSection = team.logoImage
+                    ? `<div class="card-image logo-display" style="background-image: url('${team.logoImage}')"></div>`
+                    : `<div class="card-image-placeholder"><span>${team.name.charAt(0).toUpperCase()}</span></div>`;
+
                 teamCard.innerHTML = `
-                    <div class="card-image-placeholder">
-                        <span>${team.name.charAt(0).toUpperCase()}</span>
-                    </div>
+                    ${imageSection}
                     <div class="card-content">
                         <h3>${team.name}</h3>
                         <p>Manager: ${team.managerName || 'N/A'}</p>

@@ -232,6 +232,26 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     align-items: center;
 }
 
+.team-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--border-radius);
+    background-color: var(--medium-gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: var(--dark-gray);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.team-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .player-pool-section {
     display: flex;
     flex-direction: column;
@@ -315,10 +335,14 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .player-card-name { font-weight: 600; margin-bottom: 4px; }
 .player-card-position { font-size: 14px; color: var(--secondary-color); }
 
-.team-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
+.team-list-item { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
 .team-list-item:last-child { border-bottom: none; }
 .team-list-item.bidding { background-color: #e7f3ff; border-left: 4px solid var(--primary-color); padding-left: 12px; margin-left: -16px; }
-.team-info { display: flex; flex-direction: column; }
+.team-info {
+    flex-grow: 1; /* Pushes the player count to the far right */
+    display: flex;
+    flex-direction: column;
+}
 .team-name { font-weight: 600; }
 .team-budget { font-size: 14px; color: #28a745; }
 .team-player-count { font-size: 14px; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
@@ -337,7 +361,30 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .current-player-price-info:first-of-type { border-top: 1px solid var(--medium-gray); }
 .current-player-price-info .price-value { font-weight: bold; }
 .current-player-price-info.current-bid .price-value { color: #28a745; font-size: 20px; }
-.bidding-team-name { font-weight: bold; color: var(--primary-color); }
+.bidding-team-name {
+    font-weight: normal; /* The font-weight will be on the span inside */
+    color: var(--dark-gray);
+}
+
+.bidding-team-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Aligns content to the right */
+    gap: 12px;
+    text-align: right;
+}
+.bidding-team-display span {
+    font-weight: bold;
+    color: var(--primary-color);
+    word-break: break-word; /* Allows long names to wrap */
+}
+.bidding-team-logo {
+    width: 96px;
+    height: 96px;
+    border-radius: var(--border-radius);
+    object-fit: cover;
+    flex-shrink: 0;
+}
 .current-player-merits { font-style: italic; color: var(--secondary-color); margin-top: 24px; font-size: 14px; }
 .current-player-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 
@@ -435,6 +482,46 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .presenter-team-item .team-balance {
     font-weight: 400;
     color: #28a745; /* Green */
+}
+
+.presenter-team-id {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.presenter-team-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--medium-gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: var(--dark-gray);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.presenter-team-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.presenter-bidding-team {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+}
+
+.presenter-bidding-team img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .presenter-active.with-teams, 
