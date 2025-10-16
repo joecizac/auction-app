@@ -56,6 +56,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             applyFiltersAndRenderPlayers();
             resetPlayerDetailsPanel(false); 
 
+            const closeAuctionBtn = document.getElementById('close-auction-btn');
+            if (liveAuctionState.auction.status === 'closed') {
+                closeAuctionBtn.textContent = 'Reopen Auction';
+                closeAuctionBtn.classList.remove('btn-danger');
+                closeAuctionBtn.classList.add('btn-secondary');
+            }
+
+            closeAuctionBtn.addEventListener('click', async () => {
+                const newStatus = liveAuctionState.auction.status === 'closed' ? 'upcoming' : 'closed';
+                const action = newStatus === 'closed' ? 'close' : 'reopen';
+
+                if (confirm(`Are you sure you want to ${action} this auction?`)) {
+                    try {
+                        const response = await fetch(`/api/auctions/${auctionId}/status`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: newStatus }),
+                        });
+                        if (!response.ok) throw new Error(`Failed to ${action} auction`);
+                        
+                        alert(`Auction has been ${action}d successfully.`);
+                        window.location.href = '/admin'; // Redirect to dashboard to see the change
+                    } catch (err) {
+                        console.error(`Error: ${err.message}`);
+                        alert(`An error occurred. Could not ${action} the auction.`);
+                    }
+                }
+            });
         } catch (error) {
             console.error('Failed to initialize panel:', error);
             auctionTitleHeading.textContent = `Error: ${error.message}`;
