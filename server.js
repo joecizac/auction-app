@@ -97,6 +97,9 @@ app.get('/admin/auction/:auctionId/players/new', (req, res) => res.sendFile(path
 app.get('/admin/auction/:auctionId/players/:playerId/edit', (req, res) => res.sendFile(path.join(__dirname, 'public', 'player-form.html')));
 app.get('/presenter/:auctionId', (req, res) => res.sendFile(path.join(__dirname, 'public', 'presenter.html')));
 app.get('/team-dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'team-dashboard.html')));
+app.get('/admin/auction/:auctionId/summary', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'auction-summary.html'));
+});
 
 
 // API Routes

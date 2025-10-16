@@ -906,3 +906,31 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     padding: 6px 12px; /* Makes the button smaller */
     font-size: 14px;
 }
+
+/* Auction Summary Page */
+
+.team-summary-card {
+    margin-bottom: 24px;
+}
+
+.team-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--medium-gray);
+}
+
+.team-summary-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 16px;
+}
+
+.team-summary-stats span {
+    color: var(--secondary-color);
+}
+.team-summary-stats strong {
+    color: var(--dark-gray);
+}
