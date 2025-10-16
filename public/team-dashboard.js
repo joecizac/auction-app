@@ -142,15 +142,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const canAfford = myCurrentBalance >= nextBid;
         const isButtonDisabled = isMyBid || !canAfford;
 
+        const photoHtml = selectedPlayer.photoImage
+            ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
+            : `<span>${selectedPlayer.name.charAt(0)}</span>`;
+
         biddingArea.innerHTML = `
+            <div class="bidding-player-photo">${photoHtml}</div>
             <div class="player-name">${selectedPlayer.name}</div>
             <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
             <div class="bid-info">
                 <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${formatCurrency(currentBid)}</span></div>
-                <div class="bid-info-item">
-                    <span class="bid-info-label">Bidding Team</span>
-                    <span class="bid-info-value">${biddingTeamName || '--'}</span>
-                </div>
+                <div class="bid-info-item"><span class="bid-info-label">Bidding Team</span><span class="bid-info-value">${biddingTeamName || '--'}</span></div>
             </div>
             <button id="bid-btn" class="btn btn-primary" ${isButtonDisabled ? 'disabled' : ''}>BID ${formatCurrency(nextBid)}</button>`;
     }
