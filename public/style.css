@@ -183,6 +183,10 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     /* border-radius: 50%; // for circle */
     border-radius: var(--border-radius);
 }
+.image-preview.photo {
+    width: 150px;
+    height: 150px;
+}
 
 #bid-increments-container .form-row.bid-increment-row { margin-bottom: 16px; }
 #bid-increments-container .form-row.bid-increment-row input {
@@ -352,7 +356,14 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     background-color: #f8f9fa;
     pointer-events: none; /* Disables click events */
 }
-
+.teams-panel {
+    display: flex;
+    flex-direction: column;
+}
+#teams-list-container {
+    flex-grow: 1; /* This makes the list container fill the available height */
+    overflow-y: auto; /* Adds a scrollbar if the content overflows */
+}
 .player-details-panel { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
 .current-player-details { text-align: center; }
 .current-player-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
@@ -371,11 +382,11 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     align-items: center;
     justify-content: flex-end; /* Aligns content to the right */
     gap: 12px;
-    text-align: right;
+    text-align: center;
 }
 .bidding-team-display span {
     font-weight: bold;
-    color: var(--primary-color);
+    color: var(--dark-gray);
     word-break: break-word; /* Allows long names to wrap */
 }
 .bidding-team-logo {
@@ -491,9 +502,9 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 }
 
 .presenter-team-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--border-radius);
     background-color: var(--medium-gray);
     display: flex;
     justify-content: center;

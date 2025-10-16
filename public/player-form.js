@@ -1,16 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const pathParts = window.location.pathname.split('/');
     const isEditing = pathParts[pathParts.length - 1] === 'edit';
-
-    let auctionId, playerId;
-
-    if (isEditing) {
-        playerId = pathParts[pathParts.length - 2];
-        auctionId = pathParts[pathParts.length - 4];
-    } else {
-        auctionId = pathParts[pathParts.length - 3];
-        playerId = null;
-    }
+    const auctionId = isEditing ? pathParts[pathParts.length - 4] : pathParts[pathParts.length - 3];
+    const playerId = isEditing ? pathParts[pathParts.length - 2] : null;
 
     // Element references
     const backLink = document.getElementById('back-to-players-link');
@@ -20,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deleteBtn = document.getElementById('delete-player-btn');
     const positionSelect = document.getElementById('player-position');
     const divisionSelect = document.getElementById('player-division');
+    const photoInput = document.getElementById('player-photo-input');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoPreviewText = document.getElementById('photo-preview-text');
 
     if (!auctionId) {
         console.error('Invalid auction ID');
@@ -30,57 +25,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     // THE FIX: Set back link here so it works in both modes
     backLink.href = `/admin/auction/${auctionId}/players`;
 
+    photoInput.addEventListener('change', () => {
+        const file = photoInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                photoPreview.style.backgroundImage = `url('${e.target.result}')`;
+                if(photoPreviewText) photoPreviewText.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
     // THE FIX: Fetch auction data and populate dropdowns *before* checking for edit mode
     try {
         const auctionRes = await fetch(`/api/auctions/${auctionId}`);
         const auction = await auctionRes.json();
         
-        // Populate positions based on sport
-        const sportPositions = {
-            football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'],
-            cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder']
-        };
+        const sportPositions = { football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'], cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder'] };
         const positions = sportPositions[auction.sport] || [];
-        positions.forEach(pos => {
-            const option = document.createElement('option');
-            option.value = pos;
-            option.textContent = pos;
-            positionSelect.appendChild(option);
-        });
-
-        // Populate divisions based on allowed divisions
-        const divisionLabels = {
-            senior_men: 'Senior(Men)', senior_women: 'Senior(Women)',
-            youth_men: 'Youth(Men)', youth_women: 'Youth(Women)',
-            junior_boys: 'Junior(Boys)', junior_girls: 'Junior(Girls)',
-        };
-        auction.allowedDivisions.forEach(divValue => {
-            const option = document.createElement('option');
-            option.value = divValue;
-            option.textContent = divisionLabels[divValue] || divValue;
-            divisionSelect.appendChild(option);
+        positions.forEach(pos => { positionSelect.innerHTML += `<option value="${pos}">${pos}</option>`; });
+        
+        const divisionLabels = { senior_men: 'Senior(Men)', senior_women: 'Senior(Women)', youth_men: 'Youth(Men)', youth_women: 'Youth(Women)', junior_boys: 'Junior(Boys)', junior_girls: 'Junior(Girls)' };
+        (auction.allowedDivisions || []).forEach(divValue => {
+            divisionSelect.innerHTML += `<option value="${divValue}">${divisionLabels[divValue] || divValue}</option>`;
         });
         
         if (isEditing) {
-            // --- EDIT MODE ---
             formTitle.textContent = 'Edit Player';
             submitBtn.textContent = 'Update Player';
             deleteBtn.style.display = 'block';
 
-            // Fetch existing player data to populate form
             const playerRes = await fetch(`/api/auctions/${auctionId}/players/${playerId}`);
             const player = await playerRes.json();
 
+            if (player.photoImage) {
+                photoPreview.style.backgroundImage = `url('${player.photoImage}')`;
+                if(photoPreviewText) photoPreviewText.style.display = 'none';
+            }
             document.getElementById('player-name').value = player.name;
             document.getElementById('player-position').value = player.position;
             document.getElementById('player-division').value = player.division;
             document.getElementById('player-experience').value = player.experience;
-            // THE FIX: Changed 'player.baseprice' to 'player.basePrice'
             document.getElementById('base-price').value = player.basePrice;
             document.getElementById('player-merits').value = player.merits;
 
         } else {
-            // --- CREATE MODE ---
             formTitle.textContent = 'Add Player';
             submitBtn.textContent = 'Add Player';
         }
@@ -92,22 +82,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle Form Submission (Create or Update)
     playerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const playerData = {
-            name: document.getElementById('player-name').value,
-            position: document.getElementById('player-position').value,
-            division: document.getElementById('player-division').value,
-            experience: document.getElementById('player-experience').value,
-            basePrice: document.getElementById('base-price').value,
-            merits: document.getElementById('player-merits').value,
-        };
+        const formData = new FormData();
+        formData.append('name', document.getElementById('player-name').value);
+        formData.append('position', document.getElementById('player-position').value);
+        formData.append('division', document.getElementById('player-division').value);
+        formData.append('experience', document.getElementById('player-experience').value);
+        formData.append('basePrice', document.getElementById('base-price').value);
+        formData.append('merits', document.getElementById('player-merits').value);
+        if (photoInput.files[0]) {
+            formData.append('photoImage', photoInput.files[0]);
+        }
 
         const url = isEditing ? `/api/auctions/${auctionId}/players/${playerId}` : `/api/auctions/${auctionId}/players`;
         const method = isEditing ? 'PUT' : 'POST';
 
         try {
-            const response = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(playerData) });
+            const response = await fetch(url, { method: method, body: formData });
             if (!response.ok) throw new Error('Failed to save player');
-            
             alert(`Player ${isEditing ? 'updated' : 'added'} successfully!`);
             window.location.href = `/admin/auction/${auctionId}/players`;
         } catch (error) {

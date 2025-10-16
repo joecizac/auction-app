@@ -312,18 +312,18 @@ app.get('/api/auctions/:auctionId/players', async (req, res) => {
     if (auction) res.json(auction.players || []);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.post('/api/auctions/:auctionId/players', async (req, res) => {
+app.post('/api/auctions/:auctionId/players', upload.single('photoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
     if (!auction.players) auction.players = [];
     const newPlayer = req.body;
+    if (req.file) {
+        newPlayer.photoImage = `/uploads/${req.file.filename}`;
+    }
     newPlayer.dbId = `player_${Date.now()}`;
     const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
-    
-    // THE FIX: Using the new helper function
     newPlayer.id = getNextPlayerIdForDivision(auction.players, divisionInitial);
-
     auction.players.push(newPlayer);
     await db.write();
     res.status(201).json(newPlayer);
@@ -363,30 +363,26 @@ app.get('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
         else res.status(404).json({ message: 'Player not found' });
     } else res.status(404).json({ message: 'Auction or players not found' });
 });
-app.put('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
+app.put('/api/auctions/:auctionId/players/:playerId', upload.single('photoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction && auction.players) {
         const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
         if (playerIndex !== -1) {
-            const originalPlayer = auction.players[playerIndex];
-            const updatedPlayerData = req.body;
-
-            if (updatedPlayerData.division && updatedPlayerData.division !== originalPlayer.division) {
-                const divisionInitial = updatedPlayerData.division.charAt(0).toUpperCase();
-                // THE FIX: Using the new helper function
-                updatedPlayerData.id = getNextPlayerIdForDivision(auction.players, divisionInitial, originalPlayer.dbId);
+            const updatedData = req.body;
+            if (req.file) {
+                updatedData.photoImage = `/uploads/${req.file.filename}`;
             }
-
-            auction.players[playerIndex] = { ...originalPlayer, ...updatedPlayerData };
+            const originalPlayer = auction.players[playerIndex];
+            if (updatedData.division && updatedData.division !== originalPlayer.division) {
+                const divisionInitial = updatedData.division.charAt(0).toUpperCase();
+                updatedData.id = getNextPlayerIdForDivision(auction.players, divisionInitial, originalPlayer.dbId);
+            }
+            auction.players[playerIndex] = { ...originalPlayer, ...updatedData };
             await db.write();
             res.json(auction.players[playerIndex]);
-        } else {
-            res.status(404).json({ message: 'Player not found' });
-        }
-    } else {
-        res.status(404).json({ message: 'Auction or players not found' });
-    }
+        } else res.status(404).json({ message: 'Player not found' });
+    } else res.status(404).json({ message: 'Auction or players not found' });
 });
 app.delete('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
     await db.read();
