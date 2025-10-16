@@ -6,6 +6,7 @@ const { Low, JSONFile } = require('lowdb');
 const multer = require('multer');
 const csv = require('csv-parser');
 const streamifier = require('streamifier');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -19,7 +20,22 @@ const adapter = new JSONFile(file);
 const db = new Low(adapter);
 
 // Multer Setup
-const upload = multer({ storage: multer.memoryStorage() });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = 'uploads/';
+        // Create the directory if it doesn't exist
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        // Create a unique filename
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // DB Initialization
 const initializeDatabase = async () => {
@@ -31,6 +47,7 @@ const initializeDatabase = async () => {
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- NEW: Reusable Helper Function for Player ID Generation ---
 const getNextPlayerIdForDivision = (players, divisionInitial, excludePlayerDbId = null) => {
@@ -85,27 +102,48 @@ app.get('/team-dashboard', (req, res) => res.sendFile(path.join(__dirname, 'publ
 // API Routes
 // Auctions
 app.get('/api/auctions', async (req, res) => { await db.read(); res.json(db.data.auctions); });
-app.post('/api/auctions', async (req, res) => {
-    const auctionData = req.body;
-    auctionData.id = `auc_${Date.now()}`;
-    auctionData.createdAt = new Date().toISOString();
-    await db.read();
-    if (!db.data.auctions) db.data.auctions = [];
-    db.data.auctions.push(auctionData);
-    await db.write();
-    res.status(201).json(auctionData);
-});
 app.get('/api/auctions/:auctionId', async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction) res.json(auction);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.put('/api/auctions/:auctionId', async (req, res) => {
+app.post('/api/auctions', upload.single('bannerImage'), async (req, res) => {
+    const auctionData = req.body;
+    auctionData.id = `auc_${Date.now()}`;
+    auctionData.createdAt = new Date().toISOString();
+    
+    if (req.file) {
+        auctionData.bannerImage = `/uploads/${req.file.filename}`;
+    }
+
+    // This part is also crucial: it converts the text fields back into objects/arrays
+    auctionData.bidIncrements = JSON.parse(auctionData.bidIncrements || '[]');
+    auctionData.allowedDivisions = JSON.parse(auctionData.allowedDivisions || '[]');
+    auctionData.divisionLimits = JSON.parse(auctionData.divisionLimits || '{}');
+    auctionData.positionLimits = JSON.parse(auctionData.positionLimits || '{}');
+
+    await db.read();
+    if (!db.data.auctions) db.data.auctions = [];
+    db.data.auctions.push(auctionData);
+    await db.write();
+    res.status(201).json(auctionData);
+});
+app.put('/api/auctions/:auctionId', upload.single('bannerImage'), async (req, res) => {
     await db.read();
     const auctionIndex = db.data.auctions.findIndex(a => a.id === req.params.auctionId);
     if (auctionIndex !== -1) {
-        db.data.auctions[auctionIndex] = { ...db.data.auctions[auctionIndex], ...req.body };
+        const updatedData = req.body;
+        if (req.file) {
+            updatedData.bannerImage = `/uploads/${req.file.filename}`;
+        }
+        
+        updatedData.bidIncrements = JSON.parse(updatedData.bidIncrements || '[]');
+        updatedData.allowedDivisions = JSON.parse(updatedData.allowedDivisions || '[]');
+        updatedData.divisionLimits = JSON.parse(updatedData.divisionLimits || '{}');
+        updatedData.positionLimits = JSON.parse(updatedData.positionLimits || '{}');
+
+        db.data.auctions[auctionIndex] = { ...db.data.auctions[auctionIndex], ...updatedData };
         await db.write();
         res.json(db.data.auctions[auctionIndex]);
     } else {

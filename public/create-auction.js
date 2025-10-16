@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submitBtn = auctionForm.querySelector('button[type="submit"]');
     const backLink = document.querySelector('.back-link');
     const deleteBtn = document.getElementById('delete-auction-btn');
+    const bannerInput = document.getElementById('auction-banner-input');
+    const bannerPreview = document.getElementById('banner-preview');
+    const bannerPreviewText = document.getElementById('banner-preview-text');
 
     // Set back link dynamically
     backLink.href = isEditing ? `/admin/auction/${auctionId}` : '/admin';
@@ -109,6 +112,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 
+    bannerInput.addEventListener('change', () => {
+        const file = bannerInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                bannerPreview.style.backgroundImage = `url('${e.target.result}')`;
+                bannerPreviewText.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
     // --- Form Population and Submission ---
 
     if (isEditing) {
@@ -120,6 +135,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch(`/api/auctions/${auctionId}`);
             const auction = await response.json();
+
+            if (auction.bannerImage) {
+                bannerPreview.style.backgroundImage = `url('${auction.bannerImage}')`;
+                bannerPreviewText.style.display = 'none';
+            }
 
             // Populate simple fields
             document.getElementById('auction-title').value = auction.title;
@@ -186,33 +206,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     auctionForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         
-        const formData = {
-            title: document.getElementById('auction-title').value,
-            sport: document.getElementById('sport-type').value,
-            budget: document.getElementById('team-budget').value,
-            bidIncrements: [],
-            allowedDivisions: [],
-            divisionLimits: {},
-            positionLimits: {}
-        };
+        // Use FormData to send both text and file data
+        const formData = new FormData();
 
+        formData.append('title', document.getElementById('auction-title').value);
+        formData.append('sport', document.getElementById('sport-type').value);
+        formData.append('budget', document.getElementById('team-budget').value);
+
+        const bidIncrements = [];
         document.querySelectorAll('#bid-increments-container .form-row').forEach(row => {
             const inputs = row.querySelectorAll('input');
-            formData.bidIncrements.push({ from: inputs[0].value, to: inputs[1].value, increment: inputs[2].value });
+            bidIncrements.push({ from: inputs[0].value, to: inputs[1].value, increment: inputs[2].value });
         });
+        formData.append('bidIncrements', JSON.stringify(bidIncrements));
+
+        const allowedDivisions = [];
         document.querySelectorAll('input[name="division"]:checked').forEach(checkbox => {
-            formData.allowedDivisions.push(checkbox.value);
+            allowedDivisions.push(checkbox.value);
         });
+        formData.append('allowedDivisions', JSON.stringify(allowedDivisions));
+
+        const divisionLimits = {};
         document.querySelectorAll('#division-limits-container .limit-row').forEach(row => {
             const division = row.dataset.division;
             const inputs = row.querySelectorAll('input');
-            formData.divisionLimits[division] = { min: inputs[0].value, max: inputs[1].value };
+            divisionLimits[division] = { min: inputs[0].value, max: inputs[1].value };
         });
+        formData.append('divisionLimits', JSON.stringify(divisionLimits));
+
+        const positionLimits = {};
         document.querySelectorAll('#position-limits-rows-container .limit-row').forEach(row => {
             const position = row.dataset.position;
             const inputs = row.querySelectorAll('input');
-            formData.positionLimits[position] = { min: inputs[0].value, max: inputs[1].value };
+            positionLimits[position] = { min: inputs[0].value, max: inputs[1].value };
         });
+        formData.append('positionLimits', JSON.stringify(positionLimits));
+
+        if (bannerInput.files[0]) {
+            formData.append('bannerImage', bannerInput.files[0]);
+        }
 
         const url = isEditing ? `/api/auctions/${auctionId}` : '/api/auctions';
         const method = isEditing ? 'PUT' : 'POST';
@@ -220,8 +252,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                // headers: { 'Content-Type': 'application/json' }, // Not needed with FormData
+                body: formData,
             });
             if (!response.ok) throw new Error('Failed to save auction');
 

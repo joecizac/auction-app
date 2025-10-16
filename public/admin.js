@@ -31,14 +31,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const creationDate = new Date(auction.createdAt).toLocaleDateString('en-GB');
 
+                const imageSection = auction.bannerImage
+                    ? `<div class="card-image" style="background-image: url('${auction.bannerImage}')"></div>`
+                    : `<div class="card-image-placeholder"><span>${(auction.sport || ' ').charAt(0).toUpperCase()}</span></div>`;
+
                 card.innerHTML = `
-                    <div class="card-image-placeholder">
-                        ${auction.status === 'closed' ? '<div class="closed-overlay">CLOSED</div>' : ''}
-                        <span>${auction.sport.charAt(0).toUpperCase()}</span>
-                    </div>
+                    ${imageSection}
+                    ${auction.status === 'closed' ? '<div class="closed-overlay">CLOSED</div>' : ''}
                     <div class="card-content">
-                        <h3>${auction.title}</h3>
-                        <p>${auction.sport.charAt(0).toUpperCase() + auction.sport.slice(1)}</p>
+                        <h3>${auction.title || 'Untitled Auction'}</h3>
+                        <p>${(auction.sport || 'N/A').charAt(0).toUpperCase() + (auction.sport || 'N/A').slice(1)}</p>
                         <p class="date">${creationDate}</p>
                     </div>
                 `;
