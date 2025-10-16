@@ -44,10 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     balance -= parseFloat(p.soldPrice);
                 }
             });
+            
+            const logoHtml = team.logoImage
+                ? `<img src="${team.logoImage}" alt="${team.name}">`
+                : `<span>${team.name.charAt(0)}</span>`;
+
             teamHtml += `
                 <div class="presenter-team-item">
-                    <span class="team-name">${team.name}</span>
-                    <span class="team-balance">${formatCurrency(balance)}</span>
+                    <div class="presenter-team-id">
+                        <div class="presenter-team-logo">${logoHtml}</div>
+                        <span class="team-name">${team.name}</span>
+                    </div>
+                    ${showBalance ? `<span class="team-balance">${formatCurrency(balance)}</span>` : ''}
                 </div>
             `;
         });
@@ -56,9 +64,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderBiddingView(state) {
+        presenterContent.className = `presenter-active ${state.showBalance ? 'with-teams' : 'no-teams'}`;
         const { selectedPlayer, currentBid, biddingTeamName, teams, showBalance, players } = state;
+        
+        const photoHtml = selectedPlayer.photoImage
+            ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
+            : `<span>${selectedPlayer.name.charAt(0)}</span>`;
+
+        const biddingTeam = teams.find(t => t.name === biddingTeamName);
+        const biddingTeamDisplay = biddingTeam
+            ? `<div class="presenter-bidding-team">
+                   ${biddingTeam.logoImage ? `<img src="${biddingTeam.logoImage}" alt="${biddingTeam.name}">` : ''}
+                   <span>${biddingTeam.name}</span>
+               </div>`
+            : '<span>--</span>';
+
         presenterContent.innerHTML = `
             <div class="player-info-card">
+                <div class="presenter-player-photo">${photoHtml}</div>
                 <div class="player-name">${selectedPlayer.name}</div>
                 <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
             </div>
@@ -66,19 +89,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="bid-label">Current Bid</div>
                 <div class="bid-amount">${formatCurrency(currentBid)}</div>
                 <div class="bidding-team-label">Bidding Team</div>
-                <div class="bidding-team-name">${biddingTeamName || '--'}</div>
+                <div class="bidding-team-name">${biddingTeamDisplay}</div>
             </div>
             ${showBalance ? renderTeamList(teams, players) : ''}
         `;
     }
 
     function renderSoldView(state) {
+        presenterContent.className = `presenter-sold ${state.showBalance ? 'with-teams' : 'no-teams'}`;
         const { selectedPlayer, currentBid, winningTeamName, teams, showBalance, players } = state;
+
+        const photoHtml = selectedPlayer.photoImage
+            ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
+            : `<span>${selectedPlayer.name.charAt(0)}</span>`;
+
+        const winningTeam = teams.find(t => t.name === winningTeamName);
+        const winningTeamDisplay = winningTeam
+            ? `<div class="presenter-bidding-team">
+                   ${winningTeam.logoImage ? `<img src="${winningTeam.logoImage}" alt="${winningTeam.name}">` : ''}
+                   <span>${winningTeam.name}</span>
+               </div>`
+            : `<span>${winningTeamName}</span>`;
+
         presenterContent.innerHTML = `
             <div class="result-card">
+                 <div class="presenter-player-photo">${photoHtml}</div>
                 <div class="result-player-name">${selectedPlayer.name}</div>
                 <div class="result-status-sold">SOLD TO</div>
-                <div class="result-team-name">${winningTeamName}</div>
+                <div class="result-team-name">${winningTeamDisplay}</div>
                 <div class="result-final-price">${formatCurrency(currentBid)}</div>
             </div>
             ${showBalance ? renderTeamList(teams, players) : ''}
@@ -86,9 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderUnsoldView(state) {
+        presenterContent.className = `presenter-unsold ${state.showBalance ? 'with-teams' : 'no-teams'}`;
         const { selectedPlayer, teams, showBalance, players } = state;
+
+        const photoHtml = selectedPlayer.photoImage
+            ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
+            : `<span>${selectedPlayer.name.charAt(0)}</span>`;
+
         presenterContent.innerHTML = `
              <div class="result-card">
+                <div class="presenter-player-photo">${photoHtml}</div>
                 <div class="result-player-name">${selectedPlayer.name}</div>
                 <div class="result-status-unsold">UNSOLD</div>
             </div>
