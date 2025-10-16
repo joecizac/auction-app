@@ -15,9 +15,8 @@
 
         <div class="card form-container">
             <form id="team-form">
-                <!-- Login credentials display, hidden by default -->
-                <div id="login-credentials-container" style="display: none; margin-bottom: 2rem; background-color: #e7f3ff; padding: 16px; border-radius: var(--border-radius); border: 1px solid #b3d7ff;">
-                     <button type="button" id="copy-credentials-btn" class="btn btn-secondary">Copy Details</button>
+                <div id="login-credentials-container" style="display: none; position: relative; margin-bottom: 2rem; background-color: #e7f3ff; padding: 16px; border-radius: var(--border-radius); border: 1px solid #b3d7ff;">
+                     <button type="button" id="copy-credentials-btn" class="btn btn-secondary" style="position: absolute; top: 16px; right: 16px; padding: 6px 12px; font-size: 14px;">Copy Details</button>
                      <h3 style="margin-bottom: 1rem;">Team Login Credentials</h3>
                      <p><strong>Username:</strong> <span id="team-username"></span></p>
                      <p><strong>Password:</strong> <span id="team-password"></span></p>
@@ -25,6 +24,17 @@
 
                 <div class="form-section">
                     <h2>Team Details</h2>
+                     <!-- NEW: Team Logo Upload Section -->
+                    <div class="form-group">
+                        <label for="team-logo-input">Team Logo</label>
+                        <div class="image-upload-wrapper">
+                            <div id="logo-preview" class="image-preview logo">
+                                <span id="logo-preview-text">Logo</span>
+                            </div>
+                            <input type="file" id="team-logo-input" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('team-logo-input').click()">Upload</button>
+                        </div>
+                    </div>
                      <div class="form-group">
                         <label for="team-name">Team Name*</label>
                         <input type="text" id="team-name" name="team-name" required>
@@ -55,12 +65,10 @@
                     </div>
                 </div>
 
-                <!-- NEW: Section to display the team's players, hidden by default -->
-                <div id="players-section" class="form-section" style="display: none;">
+                <!-- This section will be populated by JS in edit mode -->
+                <div id="team-players-section" class="form-section" style="display: none;">
                     <h2>Players</h2>
-                    <div id="team-players-list">
-                        <!-- Player list will be rendered here by JavaScript -->
-                    </div>
+                    <div id="team-player-list-container"></div>
                 </div>
 
                 <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center;">

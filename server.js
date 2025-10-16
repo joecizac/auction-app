@@ -179,12 +179,15 @@ app.get('/api/auctions/:auctionId/teams', async (req, res) => {
     if (auction) res.json(auction.teams || []);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.post('/api/auctions/:auctionId/teams', async (req, res) => {
+app.post('/api/auctions/:auctionId/teams', upload.single('logoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
     if (!auction.teams) auction.teams = [];
     const newTeam = req.body;
+    if (req.file) {
+        newTeam.logoImage = `/uploads/${req.file.filename}`;
+    }
     newTeam.id = `team_${Date.now()}`;
     newTeam.username = newTeam.name.toLowerCase().replace(/\s+/g, '');
     newTeam.password = Math.random().toString(36).slice(-8);
@@ -221,14 +224,18 @@ app.get('/api/full-dashboard-data/:auctionId/:myTeamId', async (req, res) => {
     
     res.json({ auction, myTeam, allTeams, allPlayers });
 });
-app.put('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
+app.put('/api/auctions/:auctionId/teams/:teamId', upload.single('logoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction && auction.teams) {
         const teamIndex = auction.teams.findIndex(t => t.id === req.params.teamId);
         if (teamIndex !== -1) {
+            const updatedData = req.body;
+            if (req.file) {
+                updatedData.logoImage = `/uploads/${req.file.filename}`;
+            }
             const originalTeam = auction.teams[teamIndex];
-            auction.teams[teamIndex] = { ...originalTeam, ...req.body };
+            auction.teams[teamIndex] = { ...originalTeam, ...updatedData };
             await db.write();
             res.json(auction.teams[teamIndex]);
         } else res.status(404).json({ message: 'Team not found' });

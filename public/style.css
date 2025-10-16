@@ -177,6 +177,12 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     background-position: center;
     color: var(--secondary-color);
 }
+.image-preview.logo {
+    width: 150px;
+    height: 150px;
+    /* border-radius: 50%; // for circle */
+    border-radius: var(--border-radius);
+}
 
 #bid-increments-container .form-row.bid-increment-row { margin-bottom: 16px; }
 #bid-increments-container .form-row.bid-increment-row input {
