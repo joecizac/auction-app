@@ -396,6 +396,26 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     object-fit: cover;
     flex-shrink: 0;
 }
+.current-player-photo {
+    width: 160px;
+    height: 160px;
+    border-radius: var(--border-radius);
+    background-color: var(--dark-gray);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0 auto 24px; /* Centers the photo and adds space below */
+    overflow: hidden;
+}
+
+.current-player-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 .current-player-merits { font-style: italic; color: var(--secondary-color); margin-top: 24px; font-size: 14px; }
 .current-player-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 

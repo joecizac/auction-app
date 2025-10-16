@@ -179,7 +179,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+        const photoHtml = selectedPlayer.photoImage
+            ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
+            : `<span>${selectedPlayer.name.charAt(0).toUpperCase()}</span>`;
+
         playerDetailsPanel.innerHTML = `
+            <div class="current-player-photo">${photoHtml}</div>
             <div class="current-player-details">
                 <h3 class="current-player-name">${selectedPlayer.name}</h3>
                 <p class="current-player-info">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
