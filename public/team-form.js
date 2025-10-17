@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const logoInput = document.getElementById('team-logo-input');
     const logoPreview = document.getElementById('logo-preview');
     const logoPreviewText = document.getElementById('logo-preview-text');
+    const captainPositionSelect = document.getElementById('captain-position');
+    const captainDivisionSelect = document.getElementById('captain-division');
 
     if (!auctionId) {
         console.error('Invalid auction ID');
@@ -41,37 +43,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    if (isEditing) {
-        // --- EDIT MODE ---
-        formTitle.textContent = 'Edit Team';
-        submitBtn.textContent = 'Update Team';
-        deleteBtn.style.display = 'block';
-        loginCredentialsContainer.style.display = 'block';
-        teamPlayersSection.style.display = 'block';
+    try {
+        // Step 1: Fetch auction rules to populate captain dropdowns
+        const auctionRes = await fetch(`/api/auctions/${auctionId}`);
+        const auction = await auctionRes.json();
+        
+        const sportPositions = { football: ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'], cricket: ['Wicketkeeper', 'Bowler', 'Batter', 'All-rounder'] };
+        const positions = sportPositions[auction.sport] || [];
+        positions.forEach(pos => { captainPositionSelect.innerHTML += `<option value="${pos}">${pos}</option>`; });
+        
+        const divisionLabels = { senior_men: 'Senior(Men)', senior_women: 'Senior(Women)', youth_men: 'Youth(Men)', youth_women: 'Youth(Women)', junior_boys: 'Junior(Boys)', junior_girls: 'Junior(Girls)' };
+        (auction.allowedDivisions || []).forEach(divValue => {
+            captainDivisionSelect.innerHTML += `<option value="${divValue}">${divisionLabels[divValue] || divValue}</option>`;
+        });
+        
+        // Step 2: If in edit mode, fetch team data and pre-fill the form
+        if (isEditing) {
+            formTitle.textContent = 'Edit Team';
+            submitBtn.textContent = 'Update Team';
+            deleteBtn.style.display = 'block';
+            loginCredentialsContainer.style.display = 'block';
+            teamPlayersSection.style.display = 'block';
 
-        try {
-            // const [teamRes, auctionRes] = await Promise.all([
-            //     fetch(`/api/auctions/${auctionId}/teams/${teamId}`),
-            //     fetch(`/api/auctions/${auctionId}`)
-            // ]);
-            
-            // if (!teamRes.ok || !auctionRes.ok) throw new Error('Could not load team or auction data');
-
-            // const team = await teamRes.json();
-            // const auction = await auctionRes.json();
-            // const teamPlayers = (auction.players || []).filter(p => p.owningTeamId === team.id);
-            // document.getElementById('team-name').value = team.name;
-            // document.getElementById('manager-name').value = team.managerName;
-            // document.getElementById('co-manager-name').value = team.coManagerName;
-            // document.getElementById('captain-name').value = team.captainName;
-            // document.getElementById('captain-value').value = team.captainValue;
-            // document.getElementById('team-username').textContent = team.username;
-            // document.getElementById('team-password').textContent = team.password;
-            // // Render the list of players
-            // renderTeamPlayers(team, teamPlayers);
-
-            const response = await fetch(`/api/auctions/${auctionId}/teams/${teamId}`);
-            const team = await response.json();
+            const teamRes = await fetch(`/api/auctions/${auctionId}/teams/${teamId}`);
+            const team = await teamRes.json();
             
             if (team.logoImage) {
                 logoPreview.style.backgroundImage = `url('${team.logoImage}')`;
@@ -82,55 +77,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('co-manager-name').value = team.coManagerName;
             document.getElementById('captain-name').value = team.captainName;
             document.getElementById('captain-value').value = team.captainValue;
+            document.getElementById('captain-position').value = team.captainPosition;
+            document.getElementById('captain-division').value = team.captainDivision;
+            document.getElementById('captain-experience').value = team.captainExperience;
             document.getElementById('team-username').textContent = team.username;
             document.getElementById('team-password').textContent = team.password;
 
-            let playersHtml = `<div class="team-player-list-item"><div class="team-player-info"><span class="player-name">${team.captainName} (Captain)</span></div><span class="player-price">₹${new Intl.NumberFormat('en-IN').format(team.captainValue)}</span></div>`;
+            let playersHtml = '';
             (team.players || []).forEach(player => {
+                const isCaptain = player.name === team.captainName;
                 playersHtml += `<div class="team-player-list-item">
-                                    <div class="team-player-info"><span class="player-name">${player.name}</span><span class="player-price">₹${new Intl.NumberFormat('en-IN').format(player.soldPrice)}</span></div>
-                                    <button type="button" class="btn btn-danger btn-small remove-player-btn" data-player-id="${player.dbId}">Remove</button>
+                                    <div class="team-player-info">
+                                        <span class="player-name">${player.name} ${isCaptain ? '(C)' : ''}</span>
+                                        <span class="player-price">${formatCurrency(player.soldPrice)}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-danger btn-small remove-player-btn" 
+                                            data-player-id="${player.dbId}" 
+                                            ${isCaptain ? 'disabled' : ''}>Remove</button>
                                 </div>`;
             });
             playerListContainer.innerHTML = playersHtml;
-        } catch (error) {
-            console.error('Failed to fetch team data:', error);
-            alert('Could not load team data.');
+        } else {
+            formTitle.textContent = 'Create Team';
+            submitBtn.textContent = 'Create Team';
         }
-
-    } else {
-        // --- CREATE MODE ---
-        formTitle.textContent = 'Create Team';
-        submitBtn.textContent = 'Create Team';
-    }
-
-    function renderTeamPlayers(team, players) {
-        teamPlayersList.innerHTML = ''; // Clear previous list
-        
-        // Add captain as the first item
-        const captainItem = document.createElement('div');
-        captainItem.className = 'team-player-list-item';
-        captainItem.innerHTML = `
-            <div class="team-player-info">
-                <span class="player-name">${team.captainName} (Captain)</span>
-                <span class="player-price">${formatCurrency(team.captainValue)}</span>
-            </div>
-        `;
-        teamPlayersList.appendChild(captainItem);
-
-        // Add sold players
-        players.forEach(player => {
-            const playerItem = document.createElement('div');
-            playerItem.className = 'team-player-list-item';
-            playerItem.innerHTML = `
-                <div class="team-player-info">
-                    <span class="player-name">${player.name}</span>
-                    <span class="player-price">${formatCurrency(player.soldPrice)}</span>
-                </div>
-                <button type="button" class="btn btn-danger btn-small remove-player-btn" data-player-id="${player.dbId}">Remove</button>
-            `;
-            teamPlayersList.appendChild(playerItem);
-        });
+    } catch (error) {
+        console.error('Failed to initialize form:', error);
+        alert('Could not load necessary data for this form.');
     }
     
     // Handle Form Submission (Create or Update)
@@ -142,20 +115,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         formData.append('coManagerName', document.getElementById('co-manager-name').value);
         formData.append('captainName', document.getElementById('captain-name').value);
         formData.append('captainValue', document.getElementById('captain-value').value);
+        formData.append('captainPosition', document.getElementById('captain-position').value);
+        formData.append('captainDivision', document.getElementById('captain-division').value);
+        formData.append('captainExperience', document.getElementById('captain-experience').value);
+        
         if (logoInput.files[0]) {
             formData.append('logoImage', logoInput.files[0]);
         }
-
+        
         const url = isEditing ? `/api/auctions/${auctionId}/teams/${teamId}` : `/api/auctions/${auctionId}/teams`;
         const method = isEditing ? 'PUT' : 'POST';
-
         try {
             const response = await fetch(url, { method: method, body: formData });
             if (!response.ok) throw new Error('Failed to save team');
-
             alert(`Team ${isEditing ? 'updated' : 'created'} successfully!`);
             window.location.href = `/admin/auction/${auctionId}/teams`;
-
         } catch (error) {
             console.error('Error saving team:', error);
             alert('Failed to save team.');
@@ -179,25 +153,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Handle Remove Player from Team
-    teamPlayersList.addEventListener('click', async (event) => {
+    playerListContainer.addEventListener('click', async (event) => {
         if (event.target.classList.contains('remove-player-btn')) {
-            const playerToRemoveId = event.target.dataset.playerId;
-            const playerName = event.target.closest('.team-player-list-item').querySelector('.player-name').textContent;
-            
-            if (confirm(`Are you sure you want to remove ${playerName} from this team? The player will be marked as 'unsold'.`)) {
+            const button = event.target;
+            const playerId = button.dataset.playerId;
+            const playerName = button.closest('.team-player-list-item').querySelector('.player-name').textContent;
+
+            if (confirm(`Are you sure you want to remove ${playerName} from this team?`)) {
                 try {
-                    const response = await fetch(`/api/auctions/${auctionId}/teams/${teamId}/players/${playerToRemoveId}`, {
-                        method: 'DELETE',
+                    const response = await fetch(`/api/auctions/${auctionId}/teams/${teamId}/remove-player`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ playerId: playerId })
                     });
+
                     if (!response.ok) throw new Error('Failed to remove player.');
-                    
-                    alert(`${playerName} has been removed from the team.`);
-                    // Refresh the page to show the updated player list
-                    window.location.reload();
+
+                    // On success, remove the player from the UI
+                    button.closest('.team-player-list-item').remove();
+                    alert(`${playerName} has been removed and is now available in the player pool.`);
 
                 } catch (error) {
                     console.error('Error removing player:', error);
-                    alert('Failed to remove player.');
+                    alert('An error occurred while removing the player.');
                 }
             }
         }

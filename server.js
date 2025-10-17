@@ -188,12 +188,28 @@ app.post('/api/auctions/:auctionId/teams', upload.single('logoImage'), async (re
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
     if (!auction.teams) auction.teams = [];
     const newTeam = req.body;
-    if (req.file) {
-        newTeam.logoImage = `/uploads/${req.file.filename}`;
-    }
+    if (req.file) { newTeam.logoImage = `/uploads/${req.file.filename}`; }
     newTeam.id = `team_${Date.now()}`;
     newTeam.username = newTeam.name.toLowerCase().replace(/\s+/g, '');
     newTeam.password = Math.random().toString(36).slice(-8);
+
+    // Add captain as a player
+    if (!auction.players) auction.players = [];
+    const captainPlayer = {
+        dbId: `player_${Date.now()}`,
+        name: newTeam.captainName,
+        position: newTeam.captainPosition,
+        division: newTeam.captainDivision,
+        experience: newTeam.captainExperience,
+        basePrice: newTeam.captainValue,
+        soldPrice: newTeam.captainValue,
+        status: 'sold',
+        owningTeamId: newTeam.id,
+    };
+    const divisionInitial = captainPlayer.division.charAt(0).toUpperCase();
+    captainPlayer.id = getNextPlayerIdForDivision(auction.players, divisionInitial);
+    auction.players.push(captainPlayer);
+    
     auction.teams.push(newTeam);
     await db.write();
     res.status(201).json(newTeam);
@@ -234,11 +250,26 @@ app.put('/api/auctions/:auctionId/teams/:teamId', upload.single('logoImage'), as
         const teamIndex = auction.teams.findIndex(t => t.id === req.params.teamId);
         if (teamIndex !== -1) {
             const updatedData = req.body;
-            if (req.file) {
-                updatedData.logoImage = `/uploads/${req.file.filename}`;
-            }
+            if (req.file) { updatedData.logoImage = `/uploads/${req.file.filename}`; }
             const originalTeam = auction.teams[teamIndex];
             auction.teams[teamIndex] = { ...originalTeam, ...updatedData };
+
+            // Update the captain player record
+            if (auction.players) {
+                const captainIndex = auction.players.findIndex(p => p.owningTeamId === originalTeam.id && p.name === originalTeam.captainName);
+                if (captainIndex !== -1) {
+                    auction.players[captainIndex] = {
+                        ...auction.players[captainIndex],
+                        name: updatedData.captainName,
+                        position: updatedData.captainPosition,
+                        division: updatedData.captainDivision,
+                        experience: updatedData.captainExperience,
+                        basePrice: updatedData.captainValue,
+                        soldPrice: updatedData.captainValue,
+                    };
+                }
+            }
+            
             await db.write();
             res.json(auction.teams[teamIndex]);
         } else res.status(404).json({ message: 'Team not found' });

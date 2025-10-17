@@ -104,6 +104,12 @@ input[type=number] { -moz-appearance: textfield; }
     padding: 32px;
 }
 
+.btn:disabled {
+    background-color: var(--medium-gray);
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #ced4da;
+}
 /* --- Page-Specific Styles --- */
 
 /* Login Page */
