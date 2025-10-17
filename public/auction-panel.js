@@ -214,18 +214,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             : `<span>${selectedPlayer.name.charAt(0).toUpperCase()}</span>`;
 
         playerDetailsPanel.innerHTML = `
-            <div class="current-player-photo">${photoHtml}</div>
-            <div class="current-player-details">
-                <h3 class="current-player-name">${selectedPlayer.name}</h3>
-                <p class="current-player-info">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
-                <div class="current-player-price-info"><span>Base Price</span><span class="price-value">${formatCurrency(selectedPlayer.basePrice)}</span></div>
-                <div class="current-player-price-info current-bid"><span>Current Bid</span><span class="price-value">${formatCurrency(currentBid)}</span></div>
-                <div class="current-player-price-info"><span>By</span><div class="price-value bidding-team-name">${biddingTeamDisplay}</div></div>
+            <div class="player-details-wireframe-layout">
+                <div class="pdw-header">
+                    <div class="pdw-photo">${photoHtml}</div>
+                    <div class="pdw-info">
+                        <h3 class="pdw-name">${selectedPlayer.name}</h3>
+                        <p class="pdw-details">${selectedPlayer.position} | ${selectedPlayer.experience}</p>
+                    </div>
+                </div>    
+                <div class="pdw-price-item">
+                    <span class="pdw-label">Current Bid</span>
+                    <span class="pdw-value current">${formatCurrency(currentBid)}</span>
+                </div>
+                <div class="pdw-by">
+                    <span class="pdw-label">By</span>
+                    ${biddingTeamDisplay}
+                </div>
+                <div class="pdw-actions">
+                    <button id="finalize-bid-btn" class="btn btn-primary">Finalize Bid</button>
+                    <button id="mark-unsold-btn" class="btn btn-secondary">Mark Unsold</button>
+                </div>
             </div>
-            <div class="current-player-actions">
-                <button id="finalize-bid-btn" class="btn btn-primary" style="width: 100%;">Finalize Bid (Sell)</button>
-                <button id="mark-unsold-btn" class="btn btn-secondary" style="width: 100%;">Mark Unsold</button>
-            </div>`;
+        `;
         
         updateTeamBiddingStatus();
         broadcastStateUpdate();

@@ -288,8 +288,9 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 
 .bottom-panels-wrapper {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 3fr 2fr; /* This creates a 60% / 40% ratio */
     gap: 24px;
+    align-items: stretch;
 }
 
 .panel-body .card {
@@ -363,6 +364,24 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .player-card-name { font-weight: 600; margin-bottom: 4px; }
 .player-card-position { font-size: 14px; color: var(--secondary-color); }
 
+.player-details-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start; /* Aligns image and text to the top */
+    flex-grow: 1;
+}
+
+.current-player-text-details {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.current-player-text-details .current-player-name,
+.current-player-text-details .current-player-info {
+    text-align: left; /* Align text to the left */
+}
+
 .team-list-item { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
 .team-list-item:last-child { border-bottom: none; }
 .team-list-item.bidding { background-color: #e7f3ff; border-left: 4px solid var(--primary-color); padding-left: 12px; margin-left: -16px; }
@@ -388,8 +407,8 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     flex-grow: 1; /* This makes the list container fill the available height */
     overflow-y: auto; /* Adds a scrollbar if the content overflows */
 }
-.player-details-panel { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-.current-player-details { text-align: center; }
+.player-details-panel { display: flex; flex-direction: column; justify-content: space-between; }
+.current-player-details { text-align: left; }
 .current-player-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
 .current-player-info { font-size: 16px; color: var(--secondary-color); margin-bottom: 24px; }
 .current-player-price-info { display: flex; justify-content: space-between; font-size: 16px; padding: 12px 0; border-bottom: 1px solid var(--medium-gray); }
@@ -410,6 +429,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 }
 .bidding-team-display span {
     font-weight: bold;
+    font-size: 32px;
     color: var(--dark-gray);
     word-break: break-word; /* Allows long names to wrap */
 }
@@ -959,4 +979,86 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     border-top: 1px solid var(--medium-gray);
     padding-top: 8px;
     text-align: right;
+}
+
+.player-details-wireframe-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+.pdw-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pdw-photo {
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+    border-radius: var(--border-radius);
+    background-color: var(--medium-gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.pdw-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pdw-info .pdw-name {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.pdw-info .pdw-details {
+    font-size: 16px;
+    color: var(--secondary-color);
+}
+
+.pdw-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.pdw-price-item .pdw-label {
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+.pdw-price-item .pdw-value {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.pdw-price-item .pdw-value.current {
+    color: #28a745;
+    font-weight: 800;
+    font-size: 32px;
+}
+
+.pdw-by {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pdw-by .pdw-label {
+    color: var(--secondary-color);
+}
+
+.pdw-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px; /* Pushes buttons to the bottom */
 }
