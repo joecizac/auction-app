@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const auctionTitleHeading = document.getElementById('auction-title-heading');
     const summaryContainer = document.getElementById('summary-container');
     const exportCsvBtn = document.getElementById('export-csv-btn');
+    const manageAuctionBtn = document.getElementById('manage-auction-btn');
     const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
     const divisionLabels = {
         senior_men: 'Senior (Men)',
@@ -18,6 +19,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!auctionId) {
         auctionTitleHeading.textContent = 'Error: Invalid Auction Link';
         return;
+    }
+
+    if (manageAuctionBtn) {
+        manageAuctionBtn.href = `/admin/auction/${auctionId}`;
     }
 
     let auctionDataForExport = null;
