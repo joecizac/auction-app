@@ -2,6 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const presenterContent = document.getElementById('presenter-content');
     const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
+    const divisionLabels = {
+        senior_men: 'Senior (Men)', senior_women: 'Senior (Women)',
+        youth_men: 'Youth (Men)', youth_women: 'Youth (Women)',
+        junior_boys: 'Junior (Boys)', junior_girls: 'Junior (Girls)',
+    };
+    const experienceLabels = {
+        novice: 'Novice', intermediate: 'Intermediate', professional: 'Professional'
+    };
 
     socket.on('auctionUpdate', (state) => {
         console.log('Received auction update:', state);
@@ -71,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
             : `<span>${selectedPlayer.name.charAt(0)}</span>`;
 
+        const formattedDivision = divisionLabels[selectedPlayer.division] || selectedPlayer.division;
+        const formattedExperience = experienceLabels[selectedPlayer.experience] || selectedPlayer.experience;
         const biddingTeam = teams.find(t => t.name === biddingTeamName);
         const biddingTeamDisplay = biddingTeam
             ? `<div class="presenter-bidding-team">
@@ -83,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="player-info-card">
                 <div class="presenter-player-photo">${photoHtml}</div>
                 <div class="player-name">${selectedPlayer.name}</div>
-                <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
+                <div class="player-details">${selectedPlayer.position} | ${formattedExperience}</div>
             </div>
             <div class="bidding-info-card">
                 <div class="bid-label">Current Bid</div>

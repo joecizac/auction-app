@@ -11,7 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const otherTeamsPanel = document.querySelector('.other-teams'); // Get the whole panel
 
     const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
-    const divisionLabels = { /* ... unchanged ... */ };
+    const divisionLabels = { senior_men: 'Senior Men', senior_women: 'Senior Women', youth_men: 'Youth Men', youth_women: 'Youth Women', junior_boys: 'Junior Boys', junior_girls: 'Junior Girls' };
+    const experienceLabels = {
+        novice: 'Novice',
+        intermediate: 'Intermediate',
+        professional: 'Professional'
+    };
 
     if (!auctionId || !myTeamId) {
         document.body.innerHTML = '<h1>Error: Invalid Link</h1>';
@@ -94,11 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="my-team-squad-list">`;
         
+        
         mySoldPlayers.forEach(player => {
             const isCaptain = player.name === myTeam.captainName && parseFloat(player.soldPrice) === parseFloat(myTeam.captainValue);
             const divisionColorClass = `division-${(player.division || '').split('_')[0]}`;
             const formattedDivision = divisionLabels[player.division] || player.division;
-            
+                
             panelHtml += `<div class="squad-list-item ${isCaptain ? 'captain' : ''} ${divisionColorClass}">
                                 <div class="player-info">
                                     <span class="player-name">${player.name} ${isCaptain ? '(C)' : ''}</span>
@@ -192,10 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<img src="${selectedPlayer.photoImage}" alt="${selectedPlayer.name}">`
             : `<span>${selectedPlayer.name.charAt(0)}</span>`;
 
+        const formattedExperience = experienceLabels[selectedPlayer.experience] || selectedPlayer.experience;
+
         biddingArea.innerHTML = `
             <div class="bidding-player-photo">${photoHtml}</div>
             <div class="player-name">${selectedPlayer.name}</div>
-            <div class="player-details">${selectedPlayer.position} | ${selectedPlayer.experience}</div>
+            <div class="player-details">${selectedPlayer.position} | ${formattedExperience}</div>
             <div class="bid-info">
                 <div class="bid-info-item"><span class="bid-info-label">Current Bid</span><span class="bid-info-value">${formatCurrency(currentBid)}</span></div>
                 <div class="bid-info-item"><span class="bid-info-label">Bidding Team</span><span class="bid-info-value">${biddingTeamName || '--'}</span></div>
