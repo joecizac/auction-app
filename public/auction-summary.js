@@ -34,15 +34,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (teams.length === 0) {
             summaryContainer.innerHTML = '<p>No teams participated in this auction.</p>';
-            exportCsvBtn.style.display = 'none'; // Hide button if there's nothing to export
+            exportCsvBtn.style.display = 'none';
             return;
         }
 
         let summaryHtml = '';
         teams.forEach(team => {
             const teamPlayers = soldPlayers.filter(p => p.owningTeamId === team.id);
-            const captainValue = parseFloat(team.captainValue);
-            let amountSpent = captainValue;
+            let amountSpent = 0;
             teamPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
             const balance = parseFloat(auction.budget) - amountSpent;
 
@@ -59,24 +58,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <thead>
                             <tr>
                                 <th>Player</th>
+                                <th>Division</th>
                                 <th>Position</th>
                                 <th>Price</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="captain-row">
-                                <td>${team.captainName} (C)</td>
-                                <td>Captain</td>
-                                <td>${formatCurrency(team.captainValue)}</td>
-                            </tr>
-                            ${teamPlayers.map(player => `
-                                <tr>
-                                    <td>${player.name}</td>
+                            ${teamPlayers.map(player => {
+                                const isCaptain = player.name === team.captainName && parseFloat(player.soldPrice) === parseFloat(team.captainValue);
+                                const rowClass = isCaptain ? 'captain-row' : '';
+                                return `
+                                <tr class="${rowClass}">
+                                    <td>${player.name} ${isCaptain ? '(C)' : ''}</td>
                                     <td>${divisionLabels[player.division] || player.division}</td>
                                     <td>${player.position}</td>
                                     <td>${formatCurrency(player.soldPrice)}</td>
                                 </tr>
-                            `).join('')}
+                            `}).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -98,21 +96,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function generateAndDownloadCsv({ auction, teams, soldPlayers }) {
-        let csvContent = "Team,Player,Division,Position,Price\n"; // CSV Header
+        let csvContent = "Team,Player,Division,Position,Price\n";
 
         teams.forEach(team => {
-            // Add captain row
-            csvContent += `"${team.name}","${team.captainName} (C)","Captain",${team.captainValue}\n`;
-            
-            // Add sold players for this team
             const teamPlayers = soldPlayers.filter(p => p.owningTeamId === team.id);
             teamPlayers.forEach(player => {
+                const isCaptain = player.name === team.captainName && parseFloat(player.soldPrice) === parseFloat(team.captainValue);
+                const playerName = `${player.name}${isCaptain ? ' (C)' : ''}`;
                 const formattedDivision = divisionLabels[player.division] || player.division;
-                csvContent += `"${team.name}","${player.name}","${formattedDivision}","${player.position}",${player.soldPrice}\n`;
+                csvContent += `"${team.name}","${playerName}","${formattedDivision}","${player.position}",${player.soldPrice}\n`;
             });
         });
 
-        // Create a hidden link to trigger the download
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
@@ -124,3 +119,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.removeChild(link);
     }
 });
+
