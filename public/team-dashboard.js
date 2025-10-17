@@ -71,48 +71,58 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMyTeamPanel(data);
     }
     function renderMyTeamPanel({ myTeam, allPlayers }) {
-        const myPlayers = allPlayers.filter(p => p.owningTeamId === myTeam.id);
-        const captainValue = parseFloat(myTeam.captainValue);
-        let amountSpent = captainValue;
-        myPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
+        const mySoldPlayers = allPlayers.filter(p => p.owningTeamId === myTeam.id);
+        let amountSpent = 0;
+        mySoldPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
         const balance = parseFloat(auctionData.budget) - amountSpent;
+        const playerCount = mySoldPlayers.length;
 
-        let playersHtml = `<div class="my-team-header">
-                               <div class="team-logo-placeholder"></div>
-                               <h2>${myTeam.name}</h2>
-                               <div class="my-team-balance">${formatCurrency(balance)}</div>
-                               <div class="my-team-spent">Spent: ${formatCurrency(amountSpent)}</div>
-                           </div>
-                           <div class="my-team-squad-list">`;
+        const logoHtml = myTeam.logoImage
+            ? `<img src="${myTeam.logoImage}" alt="${myTeam.name}" class="my-team-logo">`
+            : `<div class="team-logo-placeholder"><span>${myTeam.name.charAt(0)}</span></div>`;
+
+        let panelHtml = `<div class="my-team-header">
+                            ${logoHtml}
+                            <h2>${myTeam.name}</h2>
+                            <div class="my-team-balance">${formatCurrency(balance)}</div>
+                            <div class="my-team-spent">Spent: ${formatCurrency(amountSpent)}</div>
+                        </div>
+                        <!-- FIX #4: Add player count header -->
+                        <div class="my-team-squad-header">
+                            <h3>My Squad</h3>
+                            <span class="squad-player-count">${playerCount} Players</span>
+                        </div>
+                        <div class="my-team-squad-list">`;
         
-        playersHtml += `<div class="squad-list-item captain"><div class="player-info"><span class="player-name">${myTeam.captainName} (C)</span><span class="player-role">Captain</span></div><span class="player-price">${formatCurrency(captainValue)}</span></div>`;
-
-        myPlayers.forEach(player => {
+        mySoldPlayers.forEach(player => {
+            const isCaptain = player.name === myTeam.captainName && parseFloat(player.soldPrice) === parseFloat(myTeam.captainValue);
             const divisionColorClass = `division-${(player.division || '').split('_')[0]}`;
             const formattedDivision = divisionLabels[player.division] || player.division;
-            playersHtml += `<div class="squad-list-item ${divisionColorClass}">
+            
+            panelHtml += `<div class="squad-list-item ${isCaptain ? 'captain' : ''} ${divisionColorClass}">
                                 <div class="player-info">
-                                    <span class="player-name">${player.name}</span>
+                                    <span class="player-name">${player.name} ${isCaptain ? '(C)' : ''}</span>
                                     <span class="player-role">${formattedDivision} | ${player.position}</span>
                                 </div>
                                 <span class="player-price">${formatCurrency(player.soldPrice)}</span>
                             </div>`;
         });
         
-        playersHtml += '</div>';
-        myTeamPanel.innerHTML = playersHtml;
+        panelHtml += '</div>';
+        myTeamPanel.innerHTML = panelHtml;
     }
 
     function renderOtherTeamsPanel({ allTeams, allPlayers, myTeam }) {
         const otherTeams = allTeams.filter(t => t.id !== myTeam.id);
         let teamsHtml = '';
         otherTeams.forEach(team => {
+            // THE FIX: Calculate everything based on the definitive list of sold players for each team.
             const teamPlayers = allPlayers.filter(p => p.owningTeamId === team.id);
-            const captainValue = parseFloat(team.captainValue);
-            let amountSpent = captainValue;
+            let amountSpent = 0;
             teamPlayers.forEach(p => { amountSpent += parseFloat(p.soldPrice); });
             const balance = parseFloat(auctionData.budget) - amountSpent;
-            
+            const playerCount = teamPlayers.length;
+
             teamsHtml += `<div class="other-team-card">
                             <div class="other-team-name">${team.name}</div>
                             <div class="other-team-stats">
@@ -126,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                                 <div class="stat-item">
                                     <span class="stat-label">Players</span>
-                                    <span class="stat-value">${teamPlayers.length + 1}</span>
+                                    <span class="stat-value">${playerCount}</span>
                                 </div>
                             </div>
                         </div>`;
@@ -138,17 +148,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupSocketListeners() {
         socket.on('auctionUpdate', (state) => {
             if (!auctionData || !myTeamData) return;
-            if (state.status === 'sold') {
-                initializeView(); 
-            }
-            if (state.status === 'bidding') {
-                renderBiddingView(state);
-            } else if (state.status === 'sold') {
-                renderSoldView(state);
-            } else if (state.status === 'unsold') {
-                renderUnsoldView(state);
-            } else {
-                renderIdleView();
+            
+            switch (state.status) {
+                case 'bidding':
+                    renderBiddingView(state);
+                    break;
+                case 'sold':
+                    renderSoldView(state);
+                    if (state.winningTeamName === myTeamData.name) {
+                        setTimeout(() => {
+                            initializeView();
+                        }, 2500); // 2.5-second delay to allow user to see the result
+                    }
+                    break;
+                case 'unsold':
+                    renderUnsoldView(state);
+                    break;
+                default: // 'idle' and any other case
+                    renderIdleView();
+                    break;
             }
         });
     }

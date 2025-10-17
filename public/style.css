@@ -806,7 +806,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 
 .team-view-container {
     display: grid;
-    grid-template-columns: 320px 1fr 320px; /* Adjusted column widths */
+    grid-template-columns: 330px 1fr 330px; /* Adjusted column widths */
     gap: 24px;
     height: 100vh;
     padding: 24px;
@@ -824,19 +824,55 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 }
 
 .my-team-header {
-    padding: 24px;
     text-align: center;
-    border-bottom: 1px solid var(--medium-gray);
-    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
+/* This rule ensures the logo image itself is centered horizontally. */
+.my-team-header .my-team-logo {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius);
+    padding: 8px;
+    object-fit: contain;
+}
+
+/* This rule ensures the placeholder is also centered horizontally. */
+/* .team-logo-placeholder {
+    margin-left: auto;
+    margin-right: auto;
+} */
+
 .team-logo-placeholder {
-    width: 80px; height: 80px; border-radius: 50%;
-    background-color: var(--medium-gray); margin: 0 auto 16px;
+    width: 100px;
+    height: 100px;
+    border-radius: var(--border-radius);
+    background-color: var(--medium-gray);
+    margin: 0 auto 16px;
 }
 
 .my-team-balance {
     font-size: 24px; font-weight: 700; color: #28a745; margin: 8px 0;
+}
+
+.my-team-squad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 24px;
+    background-color: var(--light-gray);
+    border-top: 1px solid var(--medium-gray);
+    border-bottom: 1px solid var(--medium-gray);
+}
+
+.my-team-squad-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.squad-player-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--secondary-color);
 }
 
 .my-team-spent {
@@ -876,7 +912,7 @@ a.auction-card-link { text-decoration: none; color: inherit; }
     text-align: center; color: var(--secondary-color);
 }
 .other-teams-scroller {
-    overflow-y: auto; padding: 0 24px 24px;
+    overflow-y: auto; padding: 0 16px 16px;
 }
 
 .other-team-card {
@@ -886,10 +922,10 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .other-team-name { font-weight: 700; margin-bottom: 8px; font-size: 18px; }
 .other-team-stats {
     display: grid; /* Changed from flex to grid */
-    grid-template-columns: repeat(3, 1fr); /* Creates 3 equal columns */
+    grid-template-columns: 2fr 2fr 1fr;
     font-size: 12px;
     color: var(--secondary-color);
-    text-align: left;
+    text-align: center;
 }
 .stat-item {
     display: flex;
