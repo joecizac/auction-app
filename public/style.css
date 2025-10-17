@@ -940,3 +940,27 @@ a.auction-card-link { text-decoration: none; color: inherit; }
 .team-summary-stats strong {
     color: var(--dark-gray);
 }
+
+.team-card-details {
+    font-size: 13px;
+    color: var(--secondary-color);
+    margin-bottom: 12px;
+    text-align: left;
+}
+.team-card-details p {
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.team-card-details strong {
+    color: var(--dark-gray);
+}
+.card-content .player-count {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 12px;
+    border-top: 1px solid var(--medium-gray);
+    padding-top: 8px;
+    text-align: right;
+}

@@ -7,35 +7,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addTeamLink = document.getElementById('add-team-link');
     const teamsGridWrapper = document.getElementById('teams-grid-wrapper');
 
+    let allPlayers = [];
+    let allTeams = [];
+    
     if (!auctionId) {
         auctionTitleHeading.textContent = 'Error: Invalid Auction';
         return;
     }
 
-    // Set navigation links dynamically
-    backLink.href = `/admin/auction/${auctionId}`;
-    addTeamLink.href = `/admin/auction/${auctionId}/teams/new`;
+    async function initializePage() {
+        backLink.href = `/admin/auction/${auctionId}`;
+        addTeamLink.href = `/admin/auction/${auctionId}/teams/new`;
 
-    try {
-        // Fetch the auction details to display its name
-        const auctionRes = await fetch(`/api/auctions/${auctionId}`);
-        const auction = await auctionRes.json();
-        auctionTitleHeading.textContent = `Manage Teams: ${auction.title}`;
+        try {
+            const auctionRes = await fetch(`/api/auctions/${auctionId}`);
+            const auction = await auctionRes.json();
+            auctionTitleHeading.textContent = `Manage Teams: ${auction.title}`;
 
-        // THE FIX: Fetch both teams AND players
-        const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
-        const teams = await teamsRes.json();
-        const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
-        const allPlayers = await playersRes.json();
+            const teamsRes = await fetch(`/api/auctions/${auctionId}/teams`);
+            allTeams = await teamsRes.json();
+            const playersRes = await fetch(`/api/auctions/${auctionId}/players`);
+            allPlayers = await playersRes.json();
 
+            renderTeamCards(allTeams);
+
+        } catch (error) {
+            console.error('Failed to load team data:', error);
+            teamsGridWrapper.innerHTML = '<p class="error-message">Could not load teams.</p>';
+        }
+    }
+
+    function renderTeamCards(teams) {
         if (teams.length === 0) {
             teamsGridWrapper.innerHTML = '<p>No teams created for this auction yet.</p>';
         } else {
-            teamsGridWrapper.innerHTML = ''; // Clear the message
+            teamsGridWrapper.innerHTML = '';
             teams.forEach(team => {
-                let playerCount = 1; // Start with the captain
+                // THE FIX #1: Correctly count players owned by the team.
                 const wonPlayers = allPlayers.filter(p => p.status === 'sold' && p.owningTeamId === team.id);
-                playerCount += wonPlayers.length;
+                const playerCount = wonPlayers.length;
 
                 const link = document.createElement('a');
                 link.href = `/admin/auction/${auctionId}/teams/${team.id}/edit`;
@@ -45,25 +55,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 teamCard.className = 'auction-card';
 
                 const imageSection = team.logoImage
-                    ? `<div class="card-image logo-display" style="background-image: url('${team.logoImage}')"></div>`
+                    ? `<div class="card-image" style="background-image: url('${team.logoImage}'); background-size: contain; background-repeat: no-repeat;"></div>`
                     : `<div class="card-image-placeholder"><span>${team.name.charAt(0).toUpperCase()}</span></div>`;
 
+                // THE FIX #2: Add Co-Manager and Captain details.
                 teamCard.innerHTML = `
                     ${imageSection}
                     <div class="card-content">
                         <h3>${team.name}</h3>
-                        <p>Manager: ${team.managerName || 'N/A'}</p>
-                        <!-- Use the calculated player count -->
-                        <p class="date">Players: ${playerCount}</p> 
+                        <div class="team-card-details">
+                            <p><strong>Manager:</strong> ${team.managerName || 'N/A'}</p>
+                            <p><strong>Co-Manager:</strong> ${team.coManagerName || 'N/A'}</p>
+                            <p><strong>Captain:</strong> ${team.captainName || 'N/A'}</p>
+                        </div>
+                        <p class="player-count">Players: ${playerCount}</p> 
                     </div>
                 `;
                 link.appendChild(teamCard);
                 teamsGridWrapper.appendChild(link);
             });
         }
-    } catch (error) {
-        console.error('Failed to load team data:', error);
-        teamsGridWrapper.innerHTML = '<p class="error-message">Could not load teams.</p>';
     }
+    
+    initializePage();
 });
-
