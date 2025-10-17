@@ -20,22 +20,21 @@ const adapter = new JSONFile(file);
 const db = new Low(adapter);
 
 // Multer Setup
-const storage = multer.diskStorage({
+const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = 'uploads/';
-        // Create the directory if it doesn't exist
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir);
-        }
+        if (!fs.existsSync(dir)){ fs.mkdirSync(dir); }
         cb(null, dir);
     },
     filename: function (req, file, cb) {
-        // Create a unique filename
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
-const upload = multer({ storage: storage });
+const uploadImage = multer({ storage: imageStorage });
+
+// THE FIX #2: This new handler is ONLY for the CSV and uses memory.
+const uploadCsv = multer({ storage: multer.memoryStorage() });
 
 // DB Initialization
 const initializeDatabase = async () => {
@@ -111,7 +110,7 @@ app.get('/api/auctions/:auctionId', async (req, res) => {
     if (auction) res.json(auction);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.post('/api/auctions', upload.single('bannerImage'), async (req, res) => {
+app.post('/api/auctions', uploadImage.single('bannerImage'), async (req, res) => {
     const auctionData = req.body;
     auctionData.id = `auc_${Date.now()}`;
     auctionData.createdAt = new Date().toISOString();
@@ -132,7 +131,7 @@ app.post('/api/auctions', upload.single('bannerImage'), async (req, res) => {
     await db.write();
     res.status(201).json(auctionData);
 });
-app.put('/api/auctions/:auctionId', upload.single('bannerImage'), async (req, res) => {
+app.put('/api/auctions/:auctionId', uploadImage.single('bannerImage'), async (req, res) => {
     await db.read();
     const auctionIndex = db.data.auctions.findIndex(a => a.id === req.params.auctionId);
     if (auctionIndex !== -1) {
@@ -182,7 +181,7 @@ app.get('/api/auctions/:auctionId/teams', async (req, res) => {
     if (auction) res.json(auction.teams || []);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.post('/api/auctions/:auctionId/teams', upload.single('logoImage'), async (req, res) => {
+app.post('/api/auctions/:auctionId/teams', uploadImage.single('logoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
@@ -241,7 +240,7 @@ app.get('/api/full-dashboard-data/:auctionId/:myTeamId', async (req, res) => {
     
     res.json({ auction, myTeam, allTeams, allPlayers });
 });
-app.put('/api/auctions/:auctionId/teams/:teamId', upload.single('logoImage'), async (req, res) => {
+app.put('/api/auctions/:auctionId/teams/:teamId', uploadImage.single('logoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction && auction.teams) {
@@ -347,7 +346,7 @@ app.post('/api/auctions/:auctionId/teams/:teamId/remove-player', async (req, res
     if (auction && auction.players) {
         const playerIndex = auction.players.findIndex(p => p.dbId === playerId);
         if (playerIndex !== -1) {
-            auction.players[playerIndex].status = 'unsold';
+            delete auction.players[playerIndex].status;
             delete auction.players[playerIndex].owningTeamId;
             delete auction.players[playerIndex].soldPrice;
             await db.write();
@@ -381,7 +380,7 @@ app.get('/api/auctions/:auctionId/players', async (req, res) => {
     if (auction) res.json(auction.players || []);
     else res.status(404).json({ message: 'Auction not found' });
 });
-app.post('/api/auctions/:auctionId/players', upload.single('photoImage'), async (req, res) => {
+app.post('/api/auctions/:auctionId/players', uploadImage.single('photoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
@@ -397,20 +396,23 @@ app.post('/api/auctions/:auctionId/players', upload.single('photoImage'), async 
     await db.write();
     res.status(201).json(newPlayer);
 });
-app.post('/api/auctions/:auctionId/players/upload', upload.single('playerCsv'), async (req, res) => {
+app.post('/api/auctions/:auctionId/players/upload', uploadCsv.single('playerCsv'), async (req, res) => {
     const { auctionId } = req.params;
     if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+
     await db.read();
     const auction = db.data.auctions.find(a => a.id === auctionId);
     if (!auction) return res.status(404).json({ message: 'Auction not found' });
     if (!auction.players) auction.players = [];
+
     const players = [];
-    streamifier.createReadStream(req.file.buffer).pipe(csv())
+    streamifier.createReadStream(req.file.buffer).pipe(csv({
+        mapHeaders: ({ header }) => header.trim(), // Trim whitespace from headers
+        bom: true, // Handle Byte Order Mark
+    }))
         .on('data', (row) => {
             const newPlayer = { ...row, dbId: `player_${Date.now()}_${players.length}` };
             const divisionInitial = newPlayer.division.charAt(0).toUpperCase();
-            
-            // THE FIX: Using the new helper function
             newPlayer.id = getNextPlayerIdForDivision([...auction.players, ...players], divisionInitial);
             players.push(newPlayer);
         }).on('end', async () => {
@@ -419,9 +421,12 @@ app.post('/api/auctions/:auctionId/players/upload', upload.single('playerCsv'), 
                 await db.write();
                 res.status(201).json({ message: `Successfully imported ${players.length} players.` });
             } catch (err) {
-                res.status(500).json({ message: 'Error saving players to database.' });
+                res.status(500).json({ message: 'Error saving players.' });
             }
-        }).on('error', (error) => res.status(500).json({ message: 'Error parsing CSV file.' }));
+        }).on('error', (error) => {
+            console.error("CSV Parse Error:", error);
+            res.status(500).json({ message: 'Error parsing CSV file. Please check file format and headers.' });
+        });
 });
 app.get('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
     await db.read();
@@ -432,7 +437,7 @@ app.get('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
         else res.status(404).json({ message: 'Player not found' });
     } else res.status(404).json({ message: 'Auction or players not found' });
 });
-app.put('/api/auctions/:auctionId/players/:playerId', upload.single('photoImage'), async (req, res) => {
+app.put('/api/auctions/:auctionId/players/:playerId', uploadImage.single('photoImage'), async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
     if (auction && auction.players) {

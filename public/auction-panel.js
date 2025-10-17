@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const teamItem = document.createElement('div');
                 teamItem.className = 'team-list-item';
                 teamItem.dataset.teamId = team.id;
-                let balance = parseFloat(liveAuctionState.auction.budget) - parseFloat(team.captainValue);
+                let balance = parseFloat(liveAuctionState.auction.budget);
                 let playerCount = 1;
                 (liveAuctionState.players || []).forEach(p => {
                     if (p.status === 'sold' && p.owningTeamId === team.id) {
