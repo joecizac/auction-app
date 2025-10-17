@@ -49,7 +49,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- NEW: Reusable Helper Function for Player ID Generation ---
+// Helper Function for Player ID Generation
 const getNextPlayerIdForDivision = (players, divisionInitial, excludePlayerDbId = null) => {
     let maxNumber = 0;
     players.forEach(p => {
@@ -192,8 +192,7 @@ app.post('/api/auctions/:auctionId/teams', upload.single('logoImage'), async (re
     newTeam.id = `team_${Date.now()}`;
     newTeam.username = newTeam.name.toLowerCase().replace(/\s+/g, '');
     newTeam.password = Math.random().toString(36).slice(-8);
-
-    // Add captain as a player
+    
     if (!auction.players) auction.players = [];
     const captainPlayer = {
         dbId: `player_${Date.now()}`,
@@ -209,7 +208,6 @@ app.post('/api/auctions/:auctionId/teams', upload.single('logoImage'), async (re
     const divisionInitial = captainPlayer.division.charAt(0).toUpperCase();
     captainPlayer.id = getNextPlayerIdForDivision(auction.players, divisionInitial);
     auction.players.push(captainPlayer);
-    
     auction.teams.push(newTeam);
     await db.write();
     res.status(201).json(newTeam);
@@ -254,10 +252,12 @@ app.put('/api/auctions/:auctionId/teams/:teamId', upload.single('logoImage'), as
             const originalTeam = auction.teams[teamIndex];
             auction.teams[teamIndex] = { ...originalTeam, ...updatedData };
 
-            // Update the captain player record
+            // THE FIX: Robustly find and update the captain's player record
             if (auction.players) {
-                const captainIndex = auction.players.findIndex(p => p.owningTeamId === originalTeam.id && p.name === originalTeam.captainName);
+                let captainIndex = auction.players.findIndex(p => p.owningTeamId === originalTeam.id && p.name === originalTeam.captainName);
+
                 if (captainIndex !== -1) {
+                    // Captain player exists, so update it
                     auction.players[captainIndex] = {
                         ...auction.players[captainIndex],
                         name: updatedData.captainName,
@@ -267,6 +267,22 @@ app.put('/api/auctions/:auctionId/teams/:teamId', upload.single('logoImage'), as
                         basePrice: updatedData.captainValue,
                         soldPrice: updatedData.captainValue,
                     };
+                } else {
+                    // Captain player was missing (e.g., deleted), so create a new one
+                    const newCaptainPlayer = {
+                        dbId: `player_${Date.now()}`,
+                        name: updatedData.captainName,
+                        position: updatedData.captainPosition,
+                        division: updatedData.captainDivision,
+                        experience: updatedData.captainExperience,
+                        basePrice: updatedData.captainValue,
+                        soldPrice: updatedData.captainValue,
+                        status: 'sold',
+                        owningTeamId: originalTeam.id,
+                    };
+                    const divisionInitial = newCaptainPlayer.division.charAt(0).toUpperCase();
+                    newCaptainPlayer.id = getNextPlayerIdForDivision(auction.players, divisionInitial);
+                    auction.players.push(newCaptainPlayer);
                 }
             }
             
@@ -281,11 +297,30 @@ app.delete('/api/auctions/:auctionId/teams/:teamId', async (req, res) => {
     if (auction && auction.teams) {
         const teamIndex = auction.teams.findIndex(t => t.id === req.params.teamId);
         if (teamIndex !== -1) {
+            const teamIdToDelete = auction.teams[teamIndex].id;
+
+            // Find all players owned by this team and reset their status
+            if (auction.players) {
+                auction.players.forEach(player => {
+                    if (player.owningTeamId === teamIdToDelete) {
+                        delete player.status;
+                        delete player.owningTeamId;
+                        delete player.soldPrice;
+                    }
+                });
+            }
+
+            // Now, remove the team
             auction.teams.splice(teamIndex, 1);
+
             await db.write();
             res.status(204).send();
-        } else res.status(404).json({ message: 'Team not found' });
-    } else res.status(404).json({ message: 'Auction or teams not found' });
+        } else {
+            res.status(404).json({ message: 'Team not found' });
+        }
+    } else {
+        res.status(404).json({ message: 'Auction or teams not found' });
+    }
 });
 app.delete('/api/auctions/:auctionId/teams/:teamId/players/:playerId', async (req, res) => {
     await db.read();
@@ -421,14 +456,25 @@ app.put('/api/auctions/:auctionId/players/:playerId', upload.single('photoImage'
 app.delete('/api/auctions/:auctionId/players/:playerId', async (req, res) => {
     await db.read();
     const auction = db.data.auctions.find(a => a.id === req.params.auctionId);
-    if (auction && auction.players) {
-        const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
-        if (playerIndex !== -1) {
-            auction.players.splice(playerIndex, 1);
-            await db.write();
-            res.status(204).send();
-        } else res.status(404).json({ message: 'Player not found' });
-    } else res.status(404).json({ message: 'Auction or players not found' });
+    if (!auction || !auction.players) return res.status(404).json({ message: 'Auction or players not found' });
+
+    // THE FIX: Check if the player is a captain before deleting
+    const playerToDelete = auction.players.find(p => p.dbId === req.params.playerId);
+    if (!playerToDelete) return res.status(404).json({ message: 'Player not found' });
+
+    const isCaptain = (auction.teams || []).some(team => team.captainName === playerToDelete.name && team.id === playerToDelete.owningTeamId);
+    if (isCaptain) {
+        return res.status(400).json({ message: 'Cannot delete a player who is currently a team captain. Please change the team\'s captain first.' });
+    }
+
+    const playerIndex = auction.players.findIndex(p => p.dbId === req.params.playerId);
+    if (playerIndex !== -1) {
+        auction.players.splice(playerIndex, 1);
+        await db.write();
+        res.status(204).send();
+    } else {
+        res.status(404).json({ message: 'Player not found' });
+    }
 });
 app.post('/api/auctions/:auctionId/players/:playerId/sell', async (req, res) => {
     await db.read();
