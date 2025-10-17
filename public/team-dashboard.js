@@ -4,13 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const auctionId = urlParams.get('auctionId');
     const myTeamId = urlParams.get('teamId');
 
-    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
-
     // Element References
     const myTeamPanel = document.getElementById('my-team-panel');
     const biddingArea = document.getElementById('bidding-area');
     const otherTeamsContainer = document.getElementById('other-teams-container');
-    const divisionLabels = { senior_men: 'Senior Men', senior_women: 'Senior Women', youth_men: 'Youth Men', youth_women: 'Youth Women', junior_boys: 'Junior Boys', junior_girls: 'Junior Girls' };
+    const otherTeamsPanel = document.querySelector('.other-teams'); // Get the whole panel
+
+    const formatCurrency = (amount) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
+    const divisionLabels = { /* ... unchanged ... */ };
 
     if (!auctionId || !myTeamId) {
         document.body.innerHTML = '<h1>Error: Invalid Link</h1>';
@@ -20,17 +21,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let auctionData = null;
     let myTeamData = null; 
 
-    // --- INITIAL DATA LOAD ---
+    socket.on('auctionStatusChanged', (data) => {
+        if (data.auctionId === auctionId) {
+            console.log('Auction status has changed. Reloading view...');
+            window.location.reload();
+        }
+    });
+
     async function initializeView() {
         try {
             const response = await fetch(`/api/full-dashboard-data/${auctionId}/${myTeamId}`);
             if (!response.ok) throw new Error('Could not load dashboard data.');
             
             const data = await response.json();
+
             auctionData = data.auction;
             myTeamData = data.myTeam;
             
-            renderAllPanels(data);
+            // --- THE FIX: Check auction status and render the correct view ---
+            if (auctionData.status === 'closed') {
+                renderSummaryView(data);
+            } else {
+                renderLiveView(data);
+                setupSocketListeners(); // Only listen for live updates if auction is not closed
+            }
 
         } catch (error) {
             console.error('Failed to load dashboard:', error);
@@ -39,11 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- RENDER FUNCTIONS ---
-    function renderAllPanels(data) {
+    function renderLiveView(data) {
         renderMyTeamPanel(data);
         renderOtherTeamsPanel(data);
+        renderIdleView(); // Start in idle state
     }
 
+    function renderSummaryView(data) {
+        // Hide the "Other Teams" panel
+        if (otherTeamsPanel) otherTeamsPanel.style.display = 'none';
+        
+        // Make the main bidding area span the full width
+        biddingArea.style.gridColumn = '2 / span 2';
+        biddingArea.innerHTML = `<h2>Auction Closed - Final Summary</h2>`;
+        
+        // Render the final team panel
+        renderMyTeamPanel(data);
+    }
     function renderMyTeamPanel({ myTeam, allPlayers }) {
         const myPlayers = allPlayers.filter(p => p.owningTeamId === myTeam.id);
         const captainValue = parseFloat(myTeam.captainValue);
@@ -109,21 +135,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- REAL-TIME UPDATES ---
-    socket.on('auctionUpdate', (state) => {
-        if (!auctionData || !myTeamData) return;
-        if (state.status === 'sold') {
-            initializeView(); 
-        }
-        if (state.status === 'bidding') {
-            renderBiddingView(state);
-        } else if (state.status === 'sold') {
-            renderSoldView(state);
-        } else if (state.status === 'unsold') {
-            renderUnsoldView(state);
-        } else {
-            renderIdleView();
-        }
-    });
+    function setupSocketListeners() {
+        socket.on('auctionUpdate', (state) => {
+            if (!auctionData || !myTeamData) return;
+            if (state.status === 'sold') {
+                initializeView(); 
+            }
+            if (state.status === 'bidding') {
+                renderBiddingView(state);
+            } else if (state.status === 'sold') {
+                renderSoldView(state);
+            } else if (state.status === 'unsold') {
+                renderUnsoldView(state);
+            } else {
+                renderIdleView();
+            }
+        });
+    }
 
     function renderIdleView() { biddingArea.innerHTML = '<h2>Waiting for next player...</h2>'; }
 

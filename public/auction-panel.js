@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         });
                         if (!response.ok) throw new Error(`Failed to ${action} auction`);
                         
+                        socket.emit('adminChangeAuctionStatus', { auctionId: auctionId, newStatus: newStatus });
+                        
                         alert(`Auction has been ${action}d successfully.`);
                         window.location.href = '/admin'; // Redirect to dashboard to see the change
                     } catch (err) {

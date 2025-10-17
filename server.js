@@ -546,6 +546,11 @@ io.on('connection', (socket) => {
         console.log(`Received bid from team ${data.teamId}`);
         io.emit('teamBidAction', data);
     });
+
+    socket.on('adminChangeAuctionStatus', (data) => {
+        console.log(`Auction ${data.auctionId} status changed to ${data.newStatus}`);
+        socket.broadcast.emit('auctionStatusChanged', data);
+    });
 });
 
 // Start Server
